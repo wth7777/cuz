@@ -96,64 +96,47 @@ export class GraveyardScene extends Phaser.Scene {
   }
 
   createBackground() {
-    // Far background (parallax) - using the parallax background image
-    this.bgFar = this.add.tileSprite(0, 0, this.levelWidth, 224, 'parallax-bg')
-      .setOrigin(0, 0)
-      .setScrollFactor(0.1)
-      .setDepth(0);
+      // Far background (parallax) - using the parallax background image
+      this.bgFar = this.add.tileSprite(0, 0, this.levelWidth, 224, 'parallax-bg')
+        .setOrigin(0, 0)
+        .setScrollFactor(0.1)
+        .setDepth(0);
 
-    // Shift the view downward to show lower portion of the image (graves, lower trees, ground)
-    // Image is 1168x784, tileSprite shows 224px. Offset to show lower portion.
-    this.bgFar.tilePositionY = 320;
-    
-    // Mid background - additional tombstones
-    this.bgMid = this.add.group();
-    for (let x = 200; x < this.levelWidth; x += 200) {
-      const y = 140 + Phaser.Math.Between(-10, 10);
-      const tombstone = this.add.rectangle(x, y, 16, Phaser.Math.Between(30, 50), 0x251828)
-        .setOrigin(0.5, 1)
-        .setScrollFactor(0.3)
-        .setDepth(1);
-      // Cross
-      this.add.rectangle(x, y - 40, 6, 12, 0x352038)
-        .setOrigin(0.5, 1)
-        .setScrollFactor(0.3)
-        .setDepth(1);
-      this.add.rectangle(x - 6, y - 35, 18, 6, 0x352038)
-        .setOrigin(0.5, 1)
-        .setScrollFactor(0.3)
-        .setDepth(1);
-  }
-    
-    // Ground decoration
-    this.groundDecals = this.add.group();
-    for (let x = 0; x < this.levelWidth; x += 32) {
-      if (Phaser.Math.Between(0, 3) === 0) {
-        this.add.rectangle(x + 16, 170, Phaser.Math.Between(8, 24), Phaser.Math.Between(2, 6), 0x1a1008)
-          .setOrigin(0.5, 0)
-          .setScrollFactor(1)
-          .setDepth(4);
+      // Shift the view downward to show lower portion of the image (graves, lower trees, ground)
+      // Image is 1168x784, tileSprite shows 224px. Offset to show lower portion.
+      this.bgFar.tilePositionY = 320;
     }
-  }
-  }
 
   createPlatforms() {
       this.platforms = this.physics.add.staticGroup();
     
-      // Main ground - ONE CONTINUOUS BODY to prevent player getting stuck on seams
-      const ground = this.add.rectangle(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 48, 0x3d2818)
+      // Main ground - ONE CONTINUOUS BODY spanning entire level
+      // Visual ground top is at groundY + 24 = 184, height 32 (to 216)
+      // Extend visual to bottom of screen (224) to eliminate gap
+      const groundTop = this.groundY + 24; // 184
+      const groundVisualHeight = 32; // scaled tile height
+      const groundVisualBottom = groundTop + groundVisualHeight; // 216
+      const screenBottom = 224;
+      const extendedHeight = screenBottom - groundTop; // 40px to reach bottom
+      
+      // Single continuous collision body matching visual ground top surface
+      // Collision at y=groundTop (184) with small height for top surface
+      const ground = this.add.rectangle(this.levelWidth / 2, groundTop, this.levelWidth, 16, 0x3d2818)
         .setOrigin(0.5, 0)
         .setDepth(5)
-        .setVisible(false); // Invisible physics body
+        .setVisible(false);
       this.platforms.add(ground);
-      ground.body.setSize(this.levelWidth, 48);
-      ground.body.setOffset(-this.levelWidth / 2, -24);
+      ground.body.setSize(this.levelWidth, 16);
+      ground.body.setOffset(-this.levelWidth / 2, 0);
+      // Position so top of collision is exactly at groundTop (184)
+      ground.y = groundTop;
     
       // Visual ground - tile the dirt_large_center for seamless ground
-      this.groundVisual = this.add.tileSprite(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 332, 'terrain', 'dirt_large_center')
+      // Extend downward to fill gap to screen bottom (224)
+      this.groundVisual = this.add.tileSprite(this.levelWidth / 2, groundTop, this.levelWidth, extendedHeight, 'terrain', 'dirt_large_center')
         .setOrigin(0.5, 0)
         .setDepth(5)
-        .setScale(1, 32/332); // Scale height to 32px for game
+        .setScale(1, extendedHeight / 332); // Scale to fill from groundTop to screen bottom
     
       // Elevated platforms with modular terrain pieces
       const platformData = [
@@ -167,78 +150,81 @@ export class GraveyardScene extends Phaser.Scene {
       ];
     
       for (const p of platformData) {
-        // Physics body (invisible)
+        // Physics body (invisible) - match visual platform top surface
         const plat = this.add.rectangle(p.x, p.y, p.w, 16, 0x2a1a10)
-          .setOrigin(0.5, 0.5)
+          .setOrigin(0.5, 0)
           .setDepth(5)
           .setVisible(false);
         this.platforms.add(plat);
         plat.body.setSize(p.w, 16);
-        plat.body.setOffset(-p.w/2, -8);
+        plat.body.setOffset(-p.w/2, 0);
+        // Position so top of collision is at platform y
+        plat.y = p.y;
       
         // Visual platform using modular terrain pieces
-        const prefix = p.type === 'stone' ? 'stone' : 'dirt';
-      
-        // Choose pieces based on width
-        if (p.w <= 64) {
-          // Small platform - use single medium piece
-          this.add.sprite(p.x, p.y, 'terrain', `${prefix}_medium_1`)
-            .setOrigin(0.5, 0.5)
-            .setDepth(5)
-            .setScale(p.w / 111, 16/111);
-        } else if (p.w <= 128) {
-          // Medium platform - left + center + right from large tile
-          const segW = p.w / 3;
-          this.add.sprite(p.x - p.w/2 + segW/2, p.y, 'terrain', `${prefix}_large_left`)
-            .setOrigin(0.5, 0.5)
-            .setDepth(5)
-            .setScale(segW / 111, 16/332);
-          this.add.sprite(p.x, p.y, 'terrain', `${prefix}_large_center`)
-            .setOrigin(0.5, 0.5)
-            .setDepth(5)
-            .setScale(segW / 111, 16/332);
-          this.add.sprite(p.x + p.w/2 - segW/2, p.y, 'terrain', `${prefix}_large_right`)
-            .setOrigin(0.5, 0.5)
-            .setDepth(5)
-            .setScale(segW / 111, 16/332);
-        } else {
-          // Wide platform - tile center piece
-          this.add.tileSprite(p.x, p.y, p.w, 16, 'terrain', `${prefix}_large_center`)
-            .setOrigin(0.5, 0.5)
-            .setDepth(5)
-            .setScale(1, 16/332);
-          // End caps
-          this.add.sprite(p.x - p.w/2 + 55, p.y, 'terrain', `${prefix}_large_left`)
-            .setOrigin(0.5, 0.5)
-            .setDepth(6)
-            .setScale(1, 16/332);
-          this.add.sprite(p.x + p.w/2 - 55, p.y, 'terrain', `${prefix}_large_right`)
-            .setOrigin(0.5, 0.5)
-            .setDepth(6)
-            .setScale(1, 16/332);
-        }
-      }
+                const prefix = p.type === 'stone' ? 'stone' : 'dirt';
+    
+                // Choose pieces based on width - visual origin at top (y=0)
+                if (p.w <= 64) {
+                  // Small platform - use single medium piece
+                  this.add.sprite(p.x, p.y, 'terrain', `${prefix}_medium_1`)
+                    .setOrigin(0.5, 0)
+                    .setDepth(5)
+                    .setScale(p.w / 111, 16/111);
+                } else if (p.w <= 128) {
+                  // Medium platform - left + center + right from large tile
+                  const segW = p.w / 3;
+                  this.add.sprite(p.x - p.w/2 + segW/2, p.y, 'terrain', `${prefix}_large_left`)
+                    .setOrigin(0.5, 0)
+                    .setDepth(5)
+                    .setScale(segW / 111, 16/332);
+                  this.add.sprite(p.x, p.y, 'terrain', `${prefix}_large_center`)
+                    .setOrigin(0.5, 0)
+                    .setDepth(5)
+                    .setScale(segW / 111, 16/332);
+                  this.add.sprite(p.x + p.w/2 - segW/2, p.y, 'terrain', `${prefix}_large_right`)
+                    .setOrigin(0.5, 0)
+                    .setDepth(5)
+                    .setScale(segW / 111, 16/332);
+                } else {
+                  // Wide platform - tile center piece
+                  this.add.tileSprite(p.x, p.y, p.w, 16, 'terrain', `${prefix}_large_center`)
+                    .setOrigin(0.5, 0)
+                    .setDepth(5)
+                    .setScale(1, 16/332);
+                  // End caps
+                  this.add.sprite(p.x - p.w/2 + 55, p.y, 'terrain', `${prefix}_large_left`)
+                    .setOrigin(0.5, 0)
+                    .setDepth(6)
+                    .setScale(1, 16/332);
+                  this.add.sprite(p.x + p.w/2 - 55, p.y, 'terrain', `${prefix}_large_right`)
+                    .setOrigin(0.5, 0)
+                    .setDepth(6)
+                    .setScale(1, 16/332);
+                }
+              }
     
       // Boss area platform
       const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 160, 400, 32, 0x1a0a10)
-        .setOrigin(0.5, 0.5)
+        .setOrigin(0.5, 0)
         .setDepth(5)
         .setVisible(false);
       this.platforms.add(bossPlat);
-      bossPlat.body.setSize(400, 32);
-      bossPlat.body.setOffset(-200, -16);
+      bossPlat.body.setSize(400, 16);
+      bossPlat.body.setOffset(-200, 0);
+      bossPlat.y = 160;
     
       // Boss platform visual - stone modular pieces
       this.add.tileSprite(this.bossAreaStart + 100, 160, 400, 32, 'terrain', 'stone_large_center')
-        .setOrigin(0.5, 0.5)
+        .setOrigin(0.5, 0)
         .setDepth(5)
         .setScale(1, 32/332);
       this.add.sprite(this.bossAreaStart + 100 - 200 + 55, 160, 'terrain', 'stone_large_left')
-        .setOrigin(0.5, 0.5)
+        .setOrigin(0.5, 0)
         .setDepth(6)
         .setScale(1, 32/332);
       this.add.sprite(this.bossAreaStart + 100 + 200 - 55, 160, 'terrain', 'stone_large_right')
-        .setOrigin(0.5, 0.5)
+        .setOrigin(0.5, 0)
         .setDepth(6)
         .setScale(1, 32/332);
     }
