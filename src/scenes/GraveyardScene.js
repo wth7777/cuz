@@ -104,6 +104,10 @@ export class GraveyardScene extends Phaser.Scene {
       .setOrigin(0, 0)
       .setScrollFactor(0.1)
       .setDepth(0);
+
+    // Shift the view downward to show lower portion of the image (graves, lower trees, ground)
+    // Image is 1168x784, tileSprite shows 224px. Offset to show lower portion.
+    this.bgFar.tilePositionY = 320;
     
     // Mid background - additional tombstones
     this.bgMid = this.add.group();
