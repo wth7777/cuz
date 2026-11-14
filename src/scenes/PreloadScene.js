@@ -847,68 +847,68 @@ export class PreloadScene extends Phaser.Scene {
       });
     }
     
-    // Zombie
+    // Zombie - frames named walk_0, walk_1, etc.
     this.anims.create({
       key: 'zombie-walk',
-      frames: this.anims.generateFrameNumbers('zombie-atlas', { start: 0, end: this.zombieFrames - 1 }),
+      frames: Array.from({ length: this.zombieFrames }, (_, i) => ({ key: 'zombie-atlas', frame: `walk_${i}` })),
       frameRate: 8,
       repeat: -1
     });
     this.anims.create({
       key: 'zombie-attack',
-      frames: this.anims.generateFrameNumbers('zombie-atlas', { start: 0, end: 2 }),
+      frames: [{ key: 'zombie-atlas', frame: 'walk_0' }, { key: 'zombie-atlas', frame: 'walk_1' }, { key: 'zombie-atlas', frame: 'walk_2' }],
       frameRate: 6,
       repeat: 0
     });
     this.anims.create({
       key: 'zombie-die',
-      frames: this.anims.generateFrameNumbers('zombie-atlas', { start: 3, end: this.zombieFrames - 1 }),
+      frames: Array.from({ length: this.zombieFrames - 3 }, (_, i) => ({ key: 'zombie-atlas', frame: `walk_${i + 3}` })),
       frameRate: 6,
       repeat: 0
     });
     
-    // Ghoul
+    // Ghoul - frames named walk_0, walk_1, etc.
     this.anims.create({
       key: 'ghoul-walk',
-      frames: this.anims.generateFrameNumbers('ghoul-atlas', { start: 0, end: this.ghoulFrames - 1 }),
+      frames: Array.from({ length: this.ghoulFrames }, (_, i) => ({ key: 'ghoul-atlas', frame: `walk_${i}` })),
       frameRate: 12,
       repeat: -1
     });
     this.anims.create({
       key: 'ghoul-attack',
-      frames: this.anims.generateFrameNumbers('ghoul-atlas', { start: 0, end: 2 }),
+      frames: [{ key: 'ghoul-atlas', frame: 'walk_0' }, { key: 'ghoul-atlas', frame: 'walk_1' }, { key: 'ghoul-atlas', frame: 'walk_2' }],
       frameRate: 10,
       repeat: 0
     });
     this.anims.create({
       key: 'ghoul-die',
-      frames: this.anims.generateFrameNumbers('ghoul-atlas', { start: 3, end: this.ghoulFrames - 1 }),
+      frames: Array.from({ length: this.ghoulFrames - 3 }, (_, i) => ({ key: 'ghoul-atlas', frame: `walk_${i + 3}` })),
       frameRate: 8,
       repeat: 0
     });
     
-    // Guardian
+    // Guardian - frames named idle_0, idle_1, etc.
     this.anims.create({
       key: 'guardian-idle',
-      frames: this.anims.generateFrameNumbers('guardian-atlas', { start: 0, end: 1 }),
+      frames: [{ key: 'guardian-atlas', frame: 'idle_0' }, { key: 'guardian-atlas', frame: 'idle_1' }],
       frameRate: 4,
       repeat: -1
     });
     this.anims.create({
       key: 'guardian-walk',
-      frames: this.anims.generateFrameNumbers('guardian-atlas', { start: 2, end: 4 }),
+      frames: [{ key: 'guardian-atlas', frame: 'idle_2' }, { key: 'guardian-atlas', frame: 'idle_3' }, { key: 'guardian-atlas', frame: 'idle_4' }],
       frameRate: 6,
       repeat: -1
     });
     this.anims.create({
       key: 'guardian-attack',
-      frames: this.anims.generateFrameNumbers('guardian-atlas', { start: 5, end: 6 }),
+      frames: [{ key: 'guardian-atlas', frame: 'idle_5' }, { key: 'guardian-atlas', frame: 'idle_6' }],
       frameRate: 8,
       repeat: 0
     });
     this.anims.create({
       key: 'guardian-die',
-      frames: this.anims.generateFrameNumbers('guardian-atlas', { start: 7, end: 7 }),
+      frames: [{ key: 'guardian-atlas', frame: 'idle_7' }],
       frameRate: 1,
       repeat: 0
     });
