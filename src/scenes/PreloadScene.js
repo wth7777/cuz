@@ -631,16 +631,23 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   createAnimations() {
-    // Player animations - 2 frames per animation (matching actual sprite sheet)
+    // Player animations - CORRECT mapping per user's sprite sheet layout
+    // Frame 0: idle (1 frame)
+    // Frames 1-4: walking (4 frames)
+    // Frames 5-7: jump (3 frames)
+    // Frames 8-10: attack (3 frames)
+    // Frame 11: crouch (1 frame)
+    // Frames 12-14: hurt (3 frames)
+    // Frame 15: die (1 frame)
     const playerAnims = {
-      idle:         { frames: 2, rate: 4,  repeat: -1 },
-      walk:         { frames: 2, rate: 8,  repeat: -1 },
-      jump:         { frames: 2, rate: 6,  repeat: 0  },
-      attack:       { frames: 2, rate: 12, repeat: 0  },
-      crouch:       { frames: 2, rate: 6,  repeat: -1 },
-      crouchAttack: { frames: 2, rate: 12, repeat: 0  },
-      hurt:         { frames: 2, rate: 8,  repeat: 0  },
-      die:          { frames: 2, rate: 4,  repeat: 0  },
+      idle:         { frames: 1, rate: 4,  repeat: -1 },
+      walk:         { frames: 4, rate: 10, repeat: -1 },
+      jump:         { frames: 3, rate: 8,  repeat: 0  },
+      attack:       { frames: 3, rate: 12, repeat: 0  },
+      crouch:       { frames: 1, rate: 4,  repeat: -1 },
+      crouchAttack: { frames: 3, rate: 12, repeat: 0  },
+      hurt:         { frames: 3, rate: 8,  repeat: 0  },
+      die:          { frames: 1, rate: 4,  repeat: 0  },
     };
 
     for (const [name, cfg] of Object.entries(playerAnims)) {

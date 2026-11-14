@@ -20,30 +20,10 @@
         "h": 256
       }
     },
-    "idle_1": {
+    "walk_0": {
       "frame": {
         "x": 428,
         "y": 0,
-        "w": 428,
-        "h": 256
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 428,
-        "h": 256
-      },
-      "sourceSize": {
-        "w": 428,
-        "h": 256
-      }
-    },
-    "walk_0": {
-      "frame": {
-        "x": 0,
-        "y": 256,
         "w": 428,
         "h": 256
       },
@@ -62,6 +42,26 @@
     },
     "walk_1": {
       "frame": {
+        "x": 0,
+        "y": 256,
+        "w": 428,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 428,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 428,
+        "h": 256
+      }
+    },
+    "walk_2": {
+      "frame": {
         "x": 428,
         "y": 256,
         "w": 428,
@@ -80,7 +80,47 @@
         "h": 256
       }
     },
+    "walk_3": {
+      "frame": {
+        "x": 0,
+        "y": 512,
+        "w": 428,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 428,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 428,
+        "h": 256
+      }
+    },
     "jump_0": {
+      "frame": {
+        "x": 428,
+        "y": 512,
+        "w": 428,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 428,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 428,
+        "h": 256
+      }
+    },
+    "jump_1": {
       "frame": {
         "x": 0,
         "y": 768,
@@ -100,7 +140,7 @@
         "h": 256
       }
     },
-    "jump_1": {
+    "jump_2": {
       "frame": {
         "x": 428,
         "y": 768,
@@ -123,7 +163,7 @@
     "attack_0": {
       "frame": {
         "x": 0,
-        "y": 512,
+        "y": 1024,
         "w": 428,
         "h": 256
       },
@@ -143,7 +183,27 @@
     "attack_1": {
       "frame": {
         "x": 428,
-        "y": 512,
+        "y": 1024,
+        "w": 428,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 428,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 428,
+        "h": 256
+      }
+    },
+    "attack_2": {
+      "frame": {
+        "x": 0,
+        "y": 1280,
         "w": 428,
         "h": 256
       },
@@ -162,68 +222,8 @@
     },
     "crouch_0": {
       "frame": {
-        "x": 0,
-        "y": 1024,
-        "w": 428,
-        "h": 256
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 428,
-        "h": 256
-      },
-      "sourceSize": {
-        "w": 428,
-        "h": 256
-      }
-    },
-    "crouch_1": {
-      "frame": {
         "x": 428,
-        "y": 1024,
-        "w": 428,
-        "h": 256
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 428,
-        "h": 256
-      },
-      "sourceSize": {
-        "w": 428,
-        "h": 256
-      }
-    },
-    "crouchAttack_0": {
-      "frame": {
-        "x": 0,
-        "y": 1792,
-        "w": 428,
-        "h": 256
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 428,
-        "h": 256
-      },
-      "sourceSize": {
-        "w": 428,
-        "h": 256
-      }
-    },
-    "crouchAttack_1": {
-      "frame": {
-        "x": 428,
-        "y": 1792,
+        "y": 1280,
         "w": 428,
         "h": 256
       },
@@ -280,7 +280,67 @@
         "h": 256
       }
     },
+    "hurt_2": {
+      "frame": {
+        "x": 0,
+        "y": 1792,
+        "w": 428,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 428,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 428,
+        "h": 256
+      }
+    },
     "die_0": {
+      "frame": {
+        "x": 428,
+        "y": 1792,
+        "w": 428,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 428,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 428,
+        "h": 256
+      }
+    },
+    "crouchAttack_0": {
+      "frame": {
+        "x": 428,
+        "y": 1280,
+        "w": 428,
+        "h": 256
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 428,
+        "h": 256
+      },
+      "sourceSize": {
+        "w": 428,
+        "h": 256
+      }
+    },
+    "crouchAttack_1": {
       "frame": {
         "x": 0,
         "y": 1280,
@@ -300,7 +360,7 @@
         "h": 256
       }
     },
-    "die_1": {
+    "crouchAttack_2": {
       "frame": {
         "x": 428,
         "y": 1280,
