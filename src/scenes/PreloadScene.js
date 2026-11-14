@@ -50,6 +50,7 @@ export class PreloadScene extends Phaser.Scene {
 
     // Load assets
     this.load.image('parallax-bg', 'assets/parallax-bg.jpg');
+    this.load.atlas('player-atlas', 'assets/player-atlas.png', 'assets/player-atlas.json');
     
     // Generate procedural assets (except background)
     this.generateAssets();
@@ -57,10 +58,11 @@ export class PreloadScene extends Phaser.Scene {
 
   generateAssets() {
     // ========== BACKGROUNDS ==========
+    this.generateGraveyardBackground();
     this.generateDirtTileset();
     
     // ========== PLAYER SPRITES ==========
-    this.generatePlayerSprites();
+    // Player atlas loaded via this.load.atlas in preload()
     
     // ========== ENEMY SPRITES ==========
     this.generateZombieSprites();
@@ -185,214 +187,6 @@ export class PreloadScene extends Phaser.Scene {
     g.destroy();
   }
 
-  // ----- PLAYER SPRITES -----
-  generatePlayerSprites() {
-    // Player: Don Ramiro (Maldita Castilla protagonist)
-    // We'll create a sprite sheet with all animations
-    const animFrames = {
-      idle: 4,
-      walk: 6,
-      attack: 4,
-      attackUp: 4,
-      attackDown: 4,
-      crouch: 2,
-      crouchAttack: 3,
-      jump: 2,
-      hurt: 2,
-      die: 5
-    };
-    
-    // Create a texture atlas for player
-    const totalFrames = Object.values(animFrames).reduce((a, b) => a + b, 0);
-    const frameW = 32, frameH = 48;
-    const cols = 10;
-    const rows = Math.ceil(totalFrames / cols);
-    const atlasW = cols * frameW;
-    const atlasH = rows * frameH;
-    
-    const g = this.make.graphics({ x: 0, y: 0, add: false });
-    
-    let frameIndex = 0;
-    const frameData = {};
-    
-    for (const [anim, count] of Object.entries(animFrames)) {
-      frameData[anim] = [];
-      for (let i = 0; i < count; i++) {
-        const col = frameIndex % cols;
-        const row = Math.floor(frameIndex / cols);
-        const x = col * frameW;
-        const y = row * frameH;
-        
-        this.drawPlayerFrame(g, x, y, frameW, frameH, anim, i, count);
-        frameData[anim].push({ x, y, w: frameW, h: frameH });
-        frameIndex++;
-      }
-    }
-    
-    g.generateTexture('player-atlas', atlasW, atlasH);
-    g.destroy();
-    
-    // Add frames to the texture for animations
-    const tex = this.textures.get('player-atlas');
-    for (const [anim, frames] of Object.entries(frameData)) {
-      for (let i = 0; i < frames.length; i++) {
-        const f = frames[i];
-        tex.add(`${anim}_${i}`, 0, f.x, f.y, f.w, f.h);
-      }
-    }
-    
-    // Store frame data for animation creation
-    this.playerFrameData = frameData;
-    this.playerFrameSize = { w: frameW, h: frameH };
-  }
-
-  drawPlayerFrame(g, x, y, w, h, anim, frame, total) {
-    const cx = x + w / 2;
-    const cy = y + h * 0.7;
-    const progress = frame / Math.max(1, total - 1);
-    
-    // Color palette - Don Ramiro: silver armor, red cape
-    const armor = 0xc0c0d0;
-    const armorDark = 0x808090;
-    const cape = 0x8b0000;
-    const capeDark = 0x5a0000;
-    const skin = 0xe8c8a8;
-    const gold = 0xd4a828;
-    const black = 0x101010;
-    
-    // Clear frame
-    g.fillStyle(0x00000000);
-    g.fillRect(x, y, w, h);
-    
-    // Bobbing offset for walk
-    const bob = (anim === 'walk') ? Math.sin(progress * Math.PI * 2) * 1.5 : 0;
-    
-    // Legs
-    const legOffset = (anim === 'walk') ? Math.sin(progress * Math.PI * 2) * 3 : 0;
-    const legOffset2 = (anim === 'walk') ? -Math.sin(progress * Math.PI * 2) * 3 : 0;
-    
-    if (anim === 'crouch' || anim === 'crouchAttack') {
-      // Crouching legs
-      g.fillStyle(armorDark);
-      g.fillRect(cx - 8, cy + 8 + bob, 6, 8);
-      g.fillRect(cx + 2, cy + 8 + bob, 6, 8);
-    } else if (anim === 'jump') {
-      g.fillStyle(armorDark);
-      g.fillRect(cx - 8, cy + 10 + bob, 6, 10);
-      g.fillRect(cx + 2, cy + 10 + bob, 6, 10);
-    } else {
-      g.fillStyle(armorDark);
-      g.fillRect(cx - 8, cy + 12 + bob + legOffset, 6, 12);
-      g.fillRect(cx + 2, cy + 12 + bob + legOffset2, 6, 12);
-    }
-    
-    // Boots
-    g.fillStyle(black);
-    if (anim !== 'crouch' && anim !== 'crouchAttack' && anim !== 'jump') {
-      g.fillRect(cx - 8, cy + 22 + bob + legOffset, 6, 4);
-      g.fillRect(cx + 2, cy + 22 + bob + legOffset2, 6, 4);
-    }
-    
-    // Body / Torso
-    g.fillStyle(armor);
-    const torsoY = cy - 6 + bob;
-    g.fillRect(cx - 7, torsoY, 14, 16);
-    
-    // Armor details
-    g.fillStyle(armorDark);
-    g.fillRect(cx - 7, torsoY, 14, 2); // collar
-    g.fillRect(cx - 7, torsoY + 14, 14, 2); // belt
-    
-    // Gold trim
-    g.fillStyle(gold);
-    g.fillRect(cx - 7, torsoY + 1, 14, 1);
-    g.fillRect(cx - 7, torsoY + 13, 14, 1);
-    
-    // Cape (behind body)
-    g.fillStyle(cape);
-    const capeWidth = 10;
-    g.fillRect(cx - capeWidth / 2, torsoY - 2, capeWidth, 20);
-    g.fillStyle(capeDark);
-    g.fillRect(cx - capeWidth / 2 + 2, torsoY, 6, 18);
-    
-    // Arms
-    let armR_x = cx + 7, armL_x = cx - 11;
-    let armY = torsoY + 2;
-    let armAngle = 0;
-    
-    if (anim === 'attack' || anim === 'attackUp' || anim === 'attackDown' || anim === 'crouchAttack') {
-      // Attack animation - sword arm extended
-      const attackProgress = Math.sin(progress * Math.PI);
-      if (anim === 'attackUp') {
-        armAngle = -Math.PI / 2 * attackProgress;
-        armR_x = cx + 7 + Math.cos(armAngle) * 10;
-        armY = torsoY + 2 + Math.sin(armAngle) * 10;
-      } else if (anim === 'attackDown') {
-        armAngle = Math.PI / 2 * attackProgress;
-        armR_x = cx + 7 + Math.cos(armAngle) * 10;
-        armY = torsoY + 2 + Math.sin(armAngle) * 10;
-      } else {
-        armAngle = -Math.PI / 4 * attackProgress;
-        armR_x = cx + 7 + Math.cos(armAngle) * 14;
-        armY = torsoY + 2 + Math.sin(armAngle) * 8;
-      }
-    } else if (anim === 'walk') {
-      const swing = Math.sin(progress * Math.PI * 2) * 0.5;
-      armR_x = cx + 7 + swing * 4;
-      armL_x = cx - 11 - swing * 4;
-    }
-    
-    // Right arm (sword arm)
-    g.fillStyle(armor);
-    g.fillRect(armR_x, armY, 6, 10);
-    g.fillStyle(skin);
-    g.fillRect(armR_x + 1, armY + 10, 4, 6); // hand
-    
-    // Left arm
-    g.fillStyle(armor);
-    g.fillRect(armL_x, torsoY + 2, 6, 10);
-    g.fillStyle(skin);
-    g.fillRect(armL_x + 1, torsoY + 12, 4, 6);
-    
-    // Sword (in right hand)
-    if (anim === 'attack' || anim === 'attackUp' || anim === 'attackDown' || anim === 'crouchAttack' || anim === 'idle') {
-      g.fillStyle(0x606070);
-      const swordX = armR_x + 3;
-      const swordY = armY + 8;
-      if (anim === 'attackUp') {
-        g.fillRect(swordX - 1, swordY - 20, 2, 22);
-      } else if (anim === 'attackDown') {
-        g.fillRect(swordX - 1, swordY, 2, 22);
-      } else {
-        g.fillRect(swordX - 1, swordY - 18, 2, 22);
-      }
-      // Hilt
-      g.fillStyle(gold);
-      g.fillRect(swordX - 2, swordY + 2, 4, 3);
-    }
-    
-    // Head
-    g.fillStyle(skin);
-    const headY = torsoY - 8 + bob;
-    g.fillRect(cx - 5, headY, 10, 10);
-    
-    // Helmet
-    g.fillStyle(armor);
-    g.fillRect(cx - 6, headY - 2, 12, 6);
-    g.fillStyle(gold);
-    g.fillRect(cx - 4, headY - 1, 8, 2); // visor
-    
-    // Face details
-    g.fillStyle(black);
-    g.fillRect(cx - 3, headY + 1, 1, 1); // eye
-    g.fillRect(cx + 2, headY + 1, 1, 1);
-    
-    // Plume on helmet
-    if (frame % 2 === 0) {
-      g.fillStyle(cape);
-      g.fillRect(cx + 4, headY - 6, 2, 8);
-    }
-  }
 
   // ----- ENEMY SPRITES -----
   generateZombieSprites() {

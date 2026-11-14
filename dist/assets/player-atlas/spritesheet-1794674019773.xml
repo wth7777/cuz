@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="spritesheet-1794674019773.png">
+  <SubTexture name="frame_0" x="0" y="0" width="428" height="256"/>
+  <SubTexture name="frame_1" x="428" y="0" width="428" height="256"/>
+  <SubTexture name="frame_2" x="0" y="256" width="428" height="256"/>
+  <SubTexture name="frame_3" x="428" y="256" width="428" height="256"/>
+  <SubTexture name="frame_4" x="0" y="512" width="428" height="256"/>
+  <SubTexture name="frame_5" x="428" y="512" width="428" height="256"/>
+  <SubTexture name="frame_6" x="0" y="768" width="428" height="256"/>
+  <SubTexture name="frame_7" x="428" y="768" width="428" height="256"/>
+  <SubTexture name="frame_8" x="0" y="1024" width="428" height="256"/>
+  <SubTexture name="frame_9" x="428" y="1024" width="428" height="256"/>
+  <SubTexture name="frame_10" x="0" y="1280" width="428" height="256"/>
+  <SubTexture name="frame_11" x="428" y="1280" width="428" height="256"/>
+  <SubTexture name="frame_12" x="0" y="1536" width="428" height="256"/>
+  <SubTexture name="frame_13" x="428" y="1536" width="428" height="256"/>
+  <SubTexture name="frame_14" x="0" y="1792" width="428" height="256"/>
+  <SubTexture name="frame_15" x="428" y="1792" width="428" height="256"/>
+</TextureAtlas>
