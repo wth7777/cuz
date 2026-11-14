@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-export class GraveGuardian extends Phaser.GameObjects.Sprite {
+export class GraveGuardian extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
     super(scene, x, y, 'guardian-atlas');
     
@@ -30,8 +30,11 @@ export class GraveGuardian extends Phaser.GameObjects.Sprite {
     this.setDepth(12);
     this.setScale(1);
     
-    scene.physics.add.existing(this);
-    this.initBody();
+    this.setSize(48, 70);
+    this.setOffset(8, 10);
+    this.setCollideWorldBounds(true);
+    this.setGravityY(500);
+    this.setMaxVelocity(200, 500);
     
     this.play('guardian-idle', true);
     
@@ -42,14 +45,6 @@ export class GraveGuardian extends Phaser.GameObjects.Sprite {
     this.intro = true;
     this.introTimer = 0;
     this.setFlipX(true); // Face left initially
-  }
-
-  initBody() {
-    this.body.setSize(48, 70);
-    this.body.setOffset(8, 10);
-    this.body.setCollideWorldBounds(true);
-    this.body.setGravityY(500);
-    this.body.setMaxVelocity(200, 500);
   }
 
   createHealthBar() {

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-export class Player extends Phaser.GameObjects.Sprite {
+export class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
     super(scene, x, y, 'player-atlas');
     
@@ -30,6 +30,12 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.setDepth(10);
     this.setScale(1);
     
+    // Physics body setup
+    this.setSize(20, 40);
+    this.setOffset(6, 8);
+    this.setCollideWorldBounds(true);
+    this.setGravityY(500);
+    
     // Attack hitbox (separate object for collision detection)
     this.attackHitbox = scene.add.rectangle(0, 0, 32, 24, 0xff0000, 0)
       .setDepth(9);
@@ -40,14 +46,6 @@ export class Player extends Phaser.GameObjects.Sprite {
     // Invulnerability flash timer
     this.flashTimer = 0;
     this.visibleState = true;
-  }
-
-  // Call this AFTER the scene adds physics body to this sprite
-  initBody() {
-    this.body.setSize(20, 40);
-    this.body.setOffset(6, 8);
-    this.body.setCollideWorldBounds(true);
-    this.body.setGravityY(500);
   }
 
   update(touchControls, cursors) {

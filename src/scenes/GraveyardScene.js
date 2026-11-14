@@ -64,8 +64,6 @@ export class GraveyardScene extends Phaser.Scene {
     // Create player
     this.player = new Player(this, 100, this.groundY - 50);
     this.add.existing(this.player);
-    this.physics.add.existing(this.player);
-    this.player.initBody(); // Initialize physics body after it's created
     
     // Set up camera
     this.cameras.main.setBounds(0, 0, this.levelWidth, 224);
@@ -220,7 +218,6 @@ export class GraveyardScene extends Phaser.Scene {
     
     if (enemy) {
       this.add.existing(enemy);
-      this.physics.add.existing(enemy);
       this.physics.add.collider(enemy, this.platforms);
       this.enemies.push(enemy);
     }
@@ -235,7 +232,6 @@ export class GraveyardScene extends Phaser.Scene {
   spawnBoss() {
     this.boss = new GraveGuardian(this, this.bossAreaStart + 200, this.groundY - 40);
     this.add.existing(this.boss);
-    this.physics.add.existing(this.boss);
     this.physics.add.collider(this.boss, this.platforms);
     this.bossSpawned = true;
     

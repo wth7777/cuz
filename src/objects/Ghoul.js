@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-export class Ghoul extends Phaser.GameObjects.Sprite {
+export class Ghoul extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y) {
     super(scene, x, y, 'ghoul-atlas');
     
@@ -21,17 +21,12 @@ export class Ghoul extends Phaser.GameObjects.Sprite {
     this.setDepth(8);
     this.setScale(1);
     
-    scene.physics.add.existing(this);
-    this.initBody();
+    this.setSize(24, 36);
+    this.setOffset(4, 8);
+    this.setCollideWorldBounds(true);
+    this.setGravityY(500);
     
     this.play('ghoul-walk', true);
-  }
-
-  initBody() {
-    this.body.setSize(24, 36);
-    this.body.setOffset(4, 8);
-    this.body.setCollideWorldBounds(true);
-    this.body.setGravityY(500);
   }
 
   update(player) {
