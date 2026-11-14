@@ -631,18 +631,38 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   createAnimations() {
-    // Player animations - use frame names
-    const { playerFrameData } = this;
-    
-    for (const [anim, frames] of Object.entries(playerFrameData)) {
+    // Player animations - CORRECT mapping per user's sprite sheet layout
+    // Frame 0: idle (1 frame)
+    // Frames 1-4: walking (4 frames)
+    // Frames 5-7: jump (3 frames)
+    // Frames 8-10: attack (3 frames)
+    // Frame 11: crouch (1 frame)
+    // Frames 12-14: hurt (3 frames)
+    // Frame 15: die (1 frame)
+    const playerAnims = {
+      idle:         { frames: 1, rate: 4,  repeat: -1 },
+      walk:         { frames: 4, rate: 10, repeat: -1 },
+      jump:         { frames: 3, rate: 8,  repeat: 0  },
+      attack:       { frames: 3, rate: 12, repeat: 0  },
+      crouch:       { frames: 1, rate: 4,  repeat: -1 },
+      crouchAttack: { frames: 3, rate: 12, repeat: 0  },
+      hurt:         { frames: 3, rate: 8,  repeat: 0  },
+      die:          { frames: 1, rate: 4,  repeat: 0  },
+    };
+
+    for (const [name, cfg] of Object.entries(playerAnims)) {
       this.anims.create({
-        key: `player-${anim}`,
-        frames: frames.map((_, i) => ({ key: 'player-atlas', frame: `${anim}_${i}` })),
-        frameRate: anim === 'attack' || anim === 'attackUp' || anim === 'attackDown' ? 12 : 8,
-        repeat: anim === 'idle' || anim === 'walk' ? -1 : 0
+        key: `player-${name}`,
+        frames: this.anims.generateFrameNames('player-atlas', {
+          prefix: `${name}_`,
+          start: 0,
+          end: cfg.frames - 1
+        }),
+        frameRate: cfg.rate,
+        repeat: cfg.repeat
       });
     }
-    
+
     // Zombie - frames named walk_0, walk_1, etc.
     this.anims.create({
       key: 'zombie-walk',
