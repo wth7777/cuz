@@ -47,7 +47,7 @@ const config = {
   scene: [BootScene, PreloadScene, GraveyardScene, UIScene]
 };
 
-const game = new Phaser.Config(config);
+const game = new Phaser.Game(config);
 
 // Hide loading screen when game is ready
 game.events.once('ready', () => {
