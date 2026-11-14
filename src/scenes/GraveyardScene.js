@@ -69,11 +69,7 @@ export class GraveyardScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
     this.cameras.main.setZoom(2);
     this.cameras.main.setDeadzone(40, 20);
-    
-    // Create UI camera (no zoom, fixed position)
-    this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
-    this.uiCamera.setZoom(1);
-    this.uiCamera.setScroll(0, 0);
+    this.cameras.main.setFollowOffset(0, 30); // Raise camera view so ground is in lower third
     
     // Set up collisions
     this.physics.add.collider(this.player, this.platforms);
@@ -93,38 +89,6 @@ export class GraveyardScene extends Phaser.Scene {
     
     // Set up touch controls
     this.touchControls = new TouchControls(this);
-    
-    // Move UI objects to UI camera (ignore on main camera)
-    const uiObjects = [
-      this.touchControls.buttonGraphics,
-      this.touchControls.leftLabel,
-      this.touchControls.rightLabel,
-      this.touchControls.jumpLabel,
-      this.touchControls.attackLabel,
-      this.touchControls.crouchLabel,
-      this.touchControls.leftZone,
-      this.touchControls.rightZone,
-      this.touchControls.jumpZone,
-      this.touchControls.attackZone,
-      this.touchControls.crouchZone,
-    ].filter(Boolean);
-    this.cameras.main.ignore(uiObjects);
-    
-    // World objects for UI camera to ignore (filter out null/undefined)
-    const worldObjects = [
-      this.bgFar,
-      this.bgMid,
-      this.groundDecals,
-      this.platforms,
-      this.player,
-    ].filter(Boolean);
-    
-    // Add enemies if they exist
-    if (this.enemies && this.enemies.length) {
-      worldObjects.push(...this.enemies);
-    }
-    
-    this.uiCamera.ignore(worldObjects);
     
     // Set up keyboard input
     this.setupKeyboard();
@@ -177,17 +141,16 @@ export class GraveyardScene extends Phaser.Scene {
   createPlatforms() {
     this.platforms = this.physics.add.staticGroup();
     
-    // Main ground
-    for (let x = 0; x < this.levelWidth; x += 64) {
-      const ground = this.add.rectangle(x + 32, 176, 64, 48, 0x3d2818)
-        .setOrigin(0.5, 0)
-        .setDepth(5);
-      this.platforms.add(ground);
-      ground.body.setSize(64, 48);
-      ground.body.setOffset(-32, -16);
-    }
+    // Main ground - ONE CONTINUOUS BODY to prevent player getting stuck on seams
+    const ground = this.add.rectangle(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 48, 0x3d2818)
+      .setOrigin(0.5, 0)
+      .setDepth(5)
+      .setVisible(false); // Invisible physics body, visual ground handled by background
+    this.platforms.add(ground);
+    ground.body.setSize(this.levelWidth, 48);
+    ground.body.setOffset(-this.levelWidth / 2, -24);
     
-    // Elevated platforms (some tombstone tops, ruins)
+    // Elevated platforms (some tombstone tops, ruins) - keep as separate bodies
     const platformData = [
       { x: 500, y: 100, w: 96, h: 16 },
       { x: 800, y: 80, w: 128, h: 16 },
@@ -253,8 +216,6 @@ export class GraveyardScene extends Phaser.Scene {
     if (enemy) {
       this.physics.add.collider(enemy, this.platforms);
       this.enemies.push(enemy);
-      // Ignore on UI camera so it stays on main camera only
-      this.uiCamera.ignore(enemy);
     }
   }
 
@@ -268,9 +229,6 @@ export class GraveyardScene extends Phaser.Scene {
     this.boss = new GraveGuardian(this, this.bossAreaStart + 200, this.groundY - 40);
     this.physics.add.collider(this.boss, this.platforms);
     this.bossSpawned = true;
-    
-    // Ignore boss on UI camera
-    this.uiCamera.ignore(this.boss);
     
     // Stop camera follow during boss fight
     this.cameras.main.stopFollow();

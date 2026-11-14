@@ -16,149 +16,149 @@ export class TouchControls {
   }
 
   createControls() {
-    const cam = this.scene.cameras.main;
-    const width = cam.width;
-    const height = cam.height;
+      const cam = this.scene.cameras.main;
+      const width = cam.width;
+      const height = cam.height;
     
-    // Button size: 20% of camera height, clamped 120-160px
-    this.buttonSize = Phaser.Math.Clamp(Math.floor(cam.height * 0.2), 120, 160);
-    const padding = 24;
-    const gap = 16;
+      // Button size: 20% of camera height, clamped 120-160px
+      this.buttonSize = Phaser.Math.Clamp(Math.floor(cam.height * 0.2), 120, 160);
+      const padding = 16; // Smaller padding to lower buttons
+      const gap = 12;
     
-    // Left side - movement (bottom-left)
-    this.leftZone = this.scene.add.zone(padding + this.buttonSize/2, height - padding - this.buttonSize/2, this.buttonSize, this.buttonSize)
-      .setDepth(200)
-      .setScrollFactor(0)
-      .setInteractive({ useHandCursor: false });
+      // Left side - movement (bottom-left)
+      this.leftZone = this.scene.add.zone(padding + this.buttonSize/2, height - padding - this.buttonSize/2, this.buttonSize, this.buttonSize)
+        .setDepth(200)
+        .setScrollFactor(0)
+        .setInteractive({ useHandCursor: false });
     
-    this.rightZone = this.scene.add.zone(padding + this.buttonSize * 1.5 + 12, height - padding - this.buttonSize/2, this.buttonSize, this.buttonSize)
-      .setDepth(200)
-      .setScrollFactor(0)
-      .setInteractive({ useHandCursor: false });
+      this.rightZone = this.scene.add.zone(padding + this.buttonSize * 1.5 + 12, height - padding - this.buttonSize/2, this.buttonSize, this.buttonSize)
+        .setDepth(200)
+        .setScrollFactor(0)
+        .setInteractive({ useHandCursor: false });
     
-    // Right side - action buttons (bottom-right)
-    this.jumpZone = this.scene.add.zone(width - padding - this.buttonSize/2, height - padding - this.buttonSize * 1.5 - 16, this.buttonSize, this.buttonSize)
-      .setDepth(200)
-      .setScrollFactor(0)
-      .setInteractive({ useHandCursor: false });
+      // Right side - action buttons (bottom-right)
+      this.attackZone = this.scene.add.zone(width - padding - this.buttonSize/2, height - padding - this.buttonSize/2, this.buttonSize, this.buttonSize)
+        .setDepth(200)
+        .setScrollFactor(0)
+        .setInteractive({ useHandCursor: false });
     
-    this.attackZone = this.scene.add.zone(width - padding - this.buttonSize/2, height - padding - this.buttonSize/2, this.buttonSize, this.buttonSize)
-      .setDepth(200)
-      .setScrollFactor(0)
-      .setInteractive({ useHandCursor: false });
+      this.jumpZone = this.scene.add.zone(width - padding - this.buttonSize/2, height - padding - this.buttonSize * 1.5 - 12, this.buttonSize, this.buttonSize)
+        .setDepth(200)
+        .setScrollFactor(0)
+        .setInteractive({ useHandCursor: false });
     
-    // Crouch zone (smaller, above attack)
-    const crouchSize = Math.floor(this.buttonSize * 0.7);
-    this.crouchZone = this.scene.add.zone(width - padding - this.buttonSize * 0.6, height - padding - this.buttonSize * 2.8, crouchSize, crouchSize)
-      .setDepth(200)
-      .setScrollFactor(0)
-      .setInteractive({ useHandCursor: false });
+      // Crouch zone (much smaller, tucked in corner)
+      const crouchSize = Math.floor(this.buttonSize * 0.5);
+      this.crouchZone = this.scene.add.zone(width - padding - this.buttonSize * 0.6, height - padding - this.buttonSize * 2.2, crouchSize, crouchSize)
+        .setDepth(200)
+        .setScrollFactor(0)
+        .setInteractive({ useHandCursor: false });
     
-    // Visual feedback for buttons - backgrounds only
-    this.createButtonGraphics();
+      // Visual feedback for buttons - backgrounds only
+      this.createButtonGraphics();
     
-    // Create text labels
-    this.createButtonLabels();
+      // Create text labels
+      this.createButtonLabels();
     
-    // Set up event listeners
-    this.setupTouchEvents();
+      // Set up event listeners
+      this.setupTouchEvents();
     
-    // Handle resize
-    this.scene.scale.on('resize', (gameSize) => {
-      this.updatePositions(gameSize);
-    });
+      // Handle resize
+      this.scene.scale.on('resize', (gameSize) => {
+        this.updatePositions(gameSize);
+      });
     
-    // Show control hint on first load
-    this.showControlHint();
+      // Show control hint on first load
+      this.showControlHint();
     
-    // Desktop keyboard hint
-    if (!this.scene.sys.game.device.input.touch) {
-      this.showDesktopHint();
+      // Desktop keyboard hint
+      if (!this.scene.sys.game.device.input.touch) {
+        this.showDesktopHint();
+      }
     }
-  }
 
   createButtonLabels() {
-    const cam = this.scene.cameras.main;
-    const width = cam.width;
-    const height = cam.height;
-    const buttonSize = this.buttonSize;
-    const padding = 24;
-    const gap = 16;
+      const cam = this.scene.cameras.main;
+      const width = cam.width;
+      const height = cam.height;
+      const buttonSize = this.buttonSize;
+      const padding = 16;
+      const gap = 12;
     
-    const labelStyle = {
-      fontFamily: 'monospace',
-      fontSize: Math.max(20, Math.floor(buttonSize * 0.16)) + 'px',
-      color: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 4,
-      align: 'center'
-    };
-    
-    const arrowStyle = {
-      fontFamily: 'monospace',
-      fontSize: Math.max(32, Math.floor(buttonSize * 0.22)) + 'px',
-      color: '#ffffff',
-      stroke: '#000000',
-      strokeThickness: 4,
-      align: 'center'
-    };
-    
-    // Left arrow
-    this.leftLabel = this.scene.add.text(
-      padding + this.buttonSize/2, 
-      height - padding - this.buttonSize/2, 
-      '◀', { fontFamily: 'monospace', fontSize: Math.max(36, Math.floor(buttonSize * 0.28)) + 'px', color: '#ffffff', stroke: '#000000', strokeThickness: 4, align: 'center' }
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
-    
-    // Right arrow
-    this.rightLabel = this.scene.add.text(
-      padding + this.buttonSize * 1.5 + 12, 
-      height - padding - this.buttonSize/2, 
-      '▶', { fontFamily: 'monospace', fontSize: Math.max(36, Math.floor(buttonSize * 0.28)) + 'px', color: '#ffffff', stroke: '#000000', strokeThickness: 4, align: 'center' }
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
-    
-    // Jump label
-    this.jumpLabel = this.scene.add.text(
-      width - padding - this.buttonSize/2, 
-      height - padding - this.buttonSize * 1.5 - 16, 
-      '↑ JUMP', { 
+      const labelStyle = {
         fontFamily: 'monospace',
-        fontSize: Math.max(20, Math.floor(this.buttonSize * 0.18)) + 'px',
+        fontSize: Math.max(20, Math.floor(buttonSize * 0.16)) + 'px',
         color: '#ffffff',
         stroke: '#000000',
         strokeThickness: 4,
         align: 'center'
-      }
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+      };
     
-    // Attack label
-    this.attackLabel = this.scene.add.text(
-      width - padding - this.buttonSize/2, 
-      height - padding - this.buttonSize/2, 
-      '⚔ ATK', { 
+      const arrowStyle = {
         fontFamily: 'monospace',
-        fontSize: Math.max(20, Math.floor(this.buttonSize * 0.18)) + 'px',
-        color: '#ff4040',
+        fontSize: Math.max(32, Math.floor(buttonSize * 0.22)) + 'px',
+        color: '#ffffff',
         stroke: '#000000',
         strokeThickness: 4,
         align: 'center'
-      }
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+      };
     
-    // Crouch label
-    this.crouchLabel = this.scene.add.text(
-      width - padding - this.buttonSize * 0.6, 
-      height - padding - this.buttonSize * 2.8, 
-      '▼', { 
-        fontFamily: 'monospace',
-        fontSize: Math.max(24, Math.floor(this.buttonSize * 0.2)) + 'px',
-        color: '#ffffff',
-        stroke: '#000000',
-        strokeThickness: 3,
-        align: 'center'
-      }
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
-  }
+      // Left arrow
+      this.leftLabel = this.scene.add.text(
+        padding + this.buttonSize/2, 
+        height - padding - this.buttonSize/2, 
+        '◀', { fontFamily: 'monospace', fontSize: Math.max(36, Math.floor(buttonSize * 0.28)) + 'px', color: '#ffffff', stroke: '#000000', strokeThickness: 4, align: 'center' }
+      ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    
+      // Right arrow
+      this.rightLabel = this.scene.add.text(
+        padding + this.buttonSize * 1.5 + 12, 
+        height - padding - this.buttonSize/2, 
+        '▶', { fontFamily: 'monospace', fontSize: Math.max(36, Math.floor(buttonSize * 0.28)) + 'px', color: '#ffffff', stroke: '#000000', strokeThickness: 4, align: 'center' }
+      ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    
+      // Jump label (above attack)
+      this.jumpLabel = this.scene.add.text(
+        width - padding - this.buttonSize/2, 
+        height - padding - this.buttonSize * 1.5 - 12, 
+        '↑ JUMP', { 
+          fontFamily: 'monospace',
+          fontSize: Math.max(20, Math.floor(this.buttonSize * 0.18)) + 'px',
+          color: '#ffffff',
+          stroke: '#000000',
+          strokeThickness: 4,
+          align: 'center'
+        }
+      ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    
+      // Attack label
+      this.attackLabel = this.scene.add.text(
+        width - padding - this.buttonSize/2, 
+        height - padding - this.buttonSize/2, 
+        '⚔ ATK', { 
+          fontFamily: 'monospace',
+          fontSize: Math.max(20, Math.floor(this.buttonSize * 0.18)) + 'px',
+          color: '#ff4040',
+          stroke: '#000000',
+          strokeThickness: 4,
+          align: 'center'
+        }
+      ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    
+      // Crouch label (smaller)
+      this.crouchLabel = this.scene.add.text(
+        width - padding - this.buttonSize * 0.6, 
+        height - padding - this.buttonSize * 2.2, 
+        '▼', { 
+          fontFamily: 'monospace',
+          fontSize: Math.max(20, Math.floor(this.buttonSize * 0.18)) + 'px',
+          color: '#ffffff',
+          stroke: '#000000',
+          strokeThickness: 3,
+          align: 'center'
+        }
+      ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    }
 
   createButtonGraphics() {
     const cam = this.scene.cameras.main;
@@ -178,8 +178,8 @@ export class TouchControls {
     const width = cam.width;
     const height = cam.height;
     const buttonSize = this.buttonSize;
-    const padding = 24;
-    const gap = 16;
+    const padding = 16;
+    const gap = 12;
     
     const pressedAlpha = 0.9;
     const normalAlpha = 0.7;
@@ -216,14 +216,6 @@ export class TouchControls {
       this.buttonPressed.right
     );
     
-    // Jump button
-    drawButton(
-      width - padding - buttonSize/2, 
-      height - padding - buttonSize * 1.5 - 16,
-      buttonSize,
-      this.buttonPressed.jump
-    );
-    
     // Attack button
     drawButton(
       width - padding - buttonSize/2, 
@@ -232,11 +224,19 @@ export class TouchControls {
       this.buttonPressed.attack
     );
     
+    // Jump button
+    drawButton(
+      width - padding - buttonSize/2, 
+      height - padding - buttonSize * 1.5 - 12,
+      buttonSize,
+      this.buttonPressed.jump
+    );
+    
     // Crouch button (smaller)
-    const crouchSize = Math.floor(buttonSize * 0.7);
+    const crouchSize = Math.floor(buttonSize * 0.5);
     drawButton(
       width - padding - buttonSize * 0.6,
-      height - padding - buttonSize * 2.8,
+      height - padding - buttonSize * 2.2,
       crouchSize,
       this.buttonPressed.crouch
     );
@@ -273,32 +273,32 @@ export class TouchControls {
   }
 
   updatePositions(gameSize) {
-    const width = gameSize.width;
-    const height = gameSize.height;
+      const width = gameSize.width;
+      const height = gameSize.height;
     
-    // Recalculate button size based on new camera height
-    const cam = this.scene.cameras.main;
-    this.buttonSize = Phaser.Math.Clamp(Math.floor(cam.height * 0.2), 120, 160);
-    const buttonSize = this.buttonSize;
-    const padding = 24;
-    const gap = 16;
+      // Recalculate button size based on new camera height
+      const cam = this.scene.cameras.main;
+      this.buttonSize = Phaser.Math.Clamp(Math.floor(cam.height * 0.2), 120, 160);
+      const buttonSize = this.buttonSize;
+      const padding = 16;
+      const gap = 12;
     
-    this.leftZone.setPosition(padding + buttonSize/2, height - padding - buttonSize/2);
-    this.rightZone.setPosition(padding + buttonSize * 1.5 + 12, height - padding - buttonSize/2);
-    this.jumpZone.setPosition(width - padding - buttonSize/2, height - padding - buttonSize * 1.5 - 16);
-    this.attackZone.setPosition(width - padding - buttonSize/2, height - padding - buttonSize/2);
-    const crouchSize = Math.floor(buttonSize * 0.7);
-    this.crouchZone.setPosition(width - padding - buttonSize * 0.6, height - padding - buttonSize * 2.8);
+      this.leftZone.setPosition(padding + buttonSize/2, height - padding - buttonSize/2);
+      this.rightZone.setPosition(padding + buttonSize * 1.5 + 12, height - padding - buttonSize/2);
+      this.attackZone.setPosition(width - padding - buttonSize/2, height - padding - buttonSize/2);
+      this.jumpZone.setPosition(width - padding - buttonSize/2, height - padding - buttonSize * 1.5 - 12);
+      const crouchSize = Math.floor(buttonSize * 0.5);
+      this.crouchZone.setPosition(width - padding - buttonSize * 0.6, height - padding - buttonSize * 2.2);
     
-    // Update label positions
-    this.leftLabel.setPosition(padding + buttonSize/2, height - padding - buttonSize/2);
-    this.rightLabel.setPosition(padding + buttonSize * 1.5 + 12, height - padding - buttonSize/2);
-    this.jumpLabel.setPosition(width - padding - buttonSize/2, height - padding - buttonSize * 1.5 - 16);
-    this.attackLabel.setPosition(width - padding - buttonSize/2, height - padding - buttonSize/2);
-    this.crouchLabel.setPosition(width - padding - buttonSize * 0.6, height - padding - buttonSize * 2.8);
+      // Update label positions
+      this.leftLabel.setPosition(padding + buttonSize/2, height - padding - buttonSize/2);
+      this.rightLabel.setPosition(padding + buttonSize * 1.5 + 12, height - padding - buttonSize/2);
+      this.attackLabel.setPosition(width - padding - buttonSize/2, height - padding - buttonSize/2);
+      this.jumpLabel.setPosition(width - padding - buttonSize/2, height - padding - buttonSize * 1.5 - 12);
+      this.crouchLabel.setPosition(width - padding - buttonSize * 0.6, height - padding - buttonSize * 2.2);
     
-    this.updateButtonGraphics();
-  }
+      this.updateButtonGraphics();
+    }
 
   showControlHint() {
     const cam = this.scene.cameras.main;
