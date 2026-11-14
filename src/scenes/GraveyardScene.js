@@ -70,6 +70,11 @@ export class GraveyardScene extends Phaser.Scene {
     this.cameras.main.setZoom(2);
     this.cameras.main.setDeadzone(40, 20);
     
+    // Create UI camera (no zoom, fixed position)
+    this.uiCamera = this.cameras.add(0, 0, this.scale.width, this.scale.height);
+    this.uiCamera.setZoom(1);
+    this.uiCamera.setScroll(0, 0);
+    
     // Set up collisions
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.collider(this.enemies, this.platforms);
@@ -88,6 +93,29 @@ export class GraveyardScene extends Phaser.Scene {
     
     // Set up touch controls
     this.touchControls = new TouchControls(this);
+    
+    // Move UI objects to UI camera (ignore on main camera)
+    const uiObjects = [
+      this.touchControls.buttonGraphics,
+      this.touchControls.leftLabel,
+      this.touchControls.rightLabel,
+      this.touchControls.jumpLabel,
+      this.touchControls.attackLabel,
+      this.touchControls.crouchLabel,
+      this.touchControls.leftZone,
+      this.touchControls.rightZone,
+      this.touchControls.jumpZone,
+      this.touchControls.attackZone,
+      this.touchControls.crouchZone,
+    ];
+    this.cameras.main.ignore(uiObjects);
+    this.uiCamera.ignore(this.bgFar);
+    this.uiCamera.ignore(this.bgMid);
+    this.uiCamera.ignore(this.groundDecals);
+    this.uiCamera.ignore(this.platforms);
+    this.uiCamera.ignore(this.player);
+    this.uiCamera.ignore(this.enemies);
+    this.uiCamera.ignore(this.boss);
     
     // Set up keyboard input
     this.setupKeyboard();
