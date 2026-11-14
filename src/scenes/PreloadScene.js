@@ -48,13 +48,15 @@ export class PreloadScene extends Phaser.Scene {
       assetText.destroy();
     });
 
-    // Generate all procedural assets
+    // Load assets
+    this.load.image('graveyard-bg', 'assets/graveyard-bg.jpg');
+    
+    // Generate procedural assets (except background)
     this.generateAssets();
   }
 
   generateAssets() {
     // ========== BACKGROUNDS ==========
-    this.generateGraveyardBackground();
     this.generateDirtTileset();
     
     // ========== PLAYER SPRITES ==========
@@ -75,69 +77,6 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   // ----- BACKGROUNDS -----
-  generateGraveyardBackground() {
-    const w = 320, h = 224;
-    
-    // Use canvas texture for gradients
-    const texture = this.textures.createCanvas('graveyard-bg', w, h);
-    const ctx = texture.getContext();
-    
-    // Sky gradient (dark purple/blue night)
-    const skyGradient = ctx.createLinearGradient(0, 0, 0, h * 0.6);
-    skyGradient.addColorStop(0, '#0d0d1a');
-    skyGradient.addColorStop(0.5, '#1a1028');
-    skyGradient.addColorStop(1, '#2d1838');
-    ctx.fillStyle = skyGradient;
-    ctx.fillRect(0, 0, w, h * 0.6);
-    
-    // Ground - dark brown dirt
-    const groundGradient = ctx.createLinearGradient(0, h * 0.6, 0, h);
-    groundGradient.addColorStop(0, '#3d2818');
-    groundGradient.addColorStop(0.5, '#2a1a10');
-    groundGradient.addColorStop(1, '#1a1008');
-    ctx.fillStyle = groundGradient;
-    ctx.fillRect(0, h * 0.6, w, h * 0.4);
-    
-    // Far background elements - distant trees/hills
-    ctx.fillStyle = '#1a1020';
-    for (let i = 0; i < 8; i++) {
-      const x = i * 40 + Phaser.Math.Between(-10, 10);
-      const y = h * 0.55 + Phaser.Math.Between(-5, 5);
-      const w2 = Phaser.Math.Between(30, 50);
-      const h2 = Phaser.Math.Between(40, 70);
-      ctx.beginPath();
-      ctx.roundRect(x, y, w2, h2, 5);
-      ctx.fill();
-    }
-    
-    // Tombstones in far background
-    ctx.fillStyle = '#251828';
-    for (let i = 0; i < 12; i++) {
-      const x = i * 28 + 10;
-      const y = h * 0.58;
-      const tw = 12;
-      const th = Phaser.Math.Between(20, 35);
-      ctx.fillRect(x, y - th, tw, th);
-      // Cross on top
-      ctx.fillRect(x + 4, y - th - 4, 4, 8);
-      ctx.fillRect(x + 1, y - th - 1, 10, 4);
-    }
-    
-    // Moon
-    ctx.fillStyle = '#3a3048';
-    ctx.beginPath();
-    ctx.arc(280, 40, 20, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#4a4058';
-    ctx.beginPath();
-    ctx.arc(285, 35, 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(275, 45, 5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    texture.refresh();
-  }
 
   generateDirtTileset() {
     // Create a tileable dirt texture for platforms
