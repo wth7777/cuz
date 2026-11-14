@@ -7,7 +7,6 @@ export class TouchControls {
     this.right = false;
     this.jumpPressed = false;
     this.attackPressed = false;
-    this.kickPressed = false;
     this.crouch = false;
     
     this.setupDOMButtons();
@@ -19,7 +18,6 @@ export class TouchControls {
     this.btnRight = document.getElementById('btn-right');
     this.btnJump = document.getElementById('btn-jump');
     this.btnAttack = document.getElementById('btn-attack');
-    this.btnKick = document.getElementById('btn-kick');
     this.btnCrouch = document.getElementById('btn-crouch');
     
     if (!this.btnLeft || !this.btnRight || !this.btnJump || !this.btnAttack) {
@@ -29,7 +27,7 @@ export class TouchControls {
     
     // Prevent default touch behaviors on buttons
     const buttons = [this.btnLeft, this.btnRight, this.btnJump, this.btnAttack, 
-                     document.getElementById('btn-kick'), document.getElementById('btn-crouch')].filter(Boolean);
+                     this.btnCrouch].filter(Boolean);
     
     buttons.forEach(btn => {
       btn.addEventListener('touchstart', (e) => {
@@ -71,15 +69,6 @@ export class TouchControls {
       () => { this.attackPressed = true; },
       () => { this.attackPressed = false; }
     );
-    
-    // Kick button
-    const btnKick = document.getElementById('btn-kick');
-    if (btnKick) {
-      this.setupButton(btnKick,
-        () => { this.kickPressed = true; },
-        () => { this.kickPressed = false; }
-      );
-    }
     
     // Crouch button
     if (this.btnCrouch) {
@@ -165,8 +154,8 @@ export class TouchControls {
   
   destroy() {
     // Clean up event listeners
-    const buttons = [this.btnLeft, this.btnRight, this.btnJump, this.btnAttack, 
-                     document.getElementById('btn-kick'), document.getElementById('btn-crouch')].filter(Boolean);
+    const buttons = [this.btnLeft, this.btnRight, this.btnJump, this.btnAttack,
+                     this.btnCrouch].filter(Boolean);
     buttons.forEach(btn => {
       if (btn) {
         btn.removeEventListener('pointerdown', null);

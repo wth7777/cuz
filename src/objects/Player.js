@@ -20,7 +20,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.crouching = false;
     this.attacking = false;
     this.attackCooldown = 0;
-    this.attackDuration = 300;
+    this.attackDuration = 450;
     
     // Animation state
     this.currentAnim = 'idle';
@@ -140,8 +140,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     let animKey;
     if (crouch) {
       animKey = 'player-crouchAttack';
-    } else if (this.scene.cursors.up?.isDown) {
-      animKey = 'player-attackUp';
     } else {
       animKey = 'player-attack';
     }
@@ -155,7 +153,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     });
     
     // Fallback: ensure attacking resets after cooldown even if animation doesn't complete
-    this.scene.time.delayedCall(this.attackDuration, () => {
+    // Add 50ms buffer to ensure animation has time to complete
+    this.scene.time.delayedCall(this.attackDuration + 50, () => {
       if (this.attacking) {
         this.attacking = false;
         this.attackHitbox.body.enable = false;
