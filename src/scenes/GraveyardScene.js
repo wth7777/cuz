@@ -107,15 +107,24 @@ export class GraveyardScene extends Phaser.Scene {
       this.touchControls.jumpZone,
       this.touchControls.attackZone,
       this.touchControls.crouchZone,
-    ];
+    ].filter(Boolean);
     this.cameras.main.ignore(uiObjects);
-    this.uiCamera.ignore(this.bgFar);
-    this.uiCamera.ignore(this.bgMid);
-    this.uiCamera.ignore(this.groundDecals);
-    this.uiCamera.ignore(this.platforms);
-    this.uiCamera.ignore(this.player);
-    this.uiCamera.ignore(this.enemies);
-    this.uiCamera.ignore(this.boss);
+    
+    // World objects for UI camera to ignore (filter out null/undefined)
+    const worldObjects = [
+      this.bgFar,
+      this.bgMid,
+      this.groundDecals,
+      this.platforms,
+      this.player,
+    ].filter(Boolean);
+    
+    // Add enemies if they exist
+    if (this.enemies && this.enemies.length) {
+      worldObjects.push(...this.enemies);
+    }
+    
+    this.uiCamera.ignore(worldObjects);
     
     // Set up keyboard input
     this.setupKeyboard();
@@ -244,6 +253,8 @@ export class GraveyardScene extends Phaser.Scene {
     if (enemy) {
       this.physics.add.collider(enemy, this.platforms);
       this.enemies.push(enemy);
+      // Ignore on UI camera so it stays on main camera only
+      this.uiCamera.ignore(enemy);
     }
   }
 
@@ -257,6 +268,9 @@ export class GraveyardScene extends Phaser.Scene {
     this.boss = new GraveGuardian(this, this.bossAreaStart + 200, this.groundY - 40);
     this.physics.add.collider(this.boss, this.platforms);
     this.bossSpawned = true;
+    
+    // Ignore boss on UI camera
+    this.uiCamera.ignore(this.boss);
     
     // Stop camera follow during boss fight
     this.cameras.main.stopFollow();
