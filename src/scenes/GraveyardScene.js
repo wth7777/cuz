@@ -149,47 +149,74 @@ export class GraveyardScene extends Phaser.Scene {
       ground.body.setSize(this.levelWidth, 48);
       ground.body.setOffset(-this.levelWidth / 2, -24);
     
-      // Visual ground - tile the ground texture
-      this.groundVisual = this.add.tileSprite(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 32, 'tileset', 'ground_red')
+      // Visual ground - tile the dirt_large_center for seamless ground
+      this.groundVisual = this.add.tileSprite(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 332, 'terrain', 'dirt_large_center')
         .setOrigin(0.5, 0)
-        .setDepth(5);
+        .setDepth(5)
+        .setScale(1, 32/332); // Scale height to 32px for game
     
-      // Elevated platforms with tile visuals
+      // Elevated platforms with modular terrain pieces
       const platformData = [
-        { x: 500, y: 100, w: 96, h: 16 },
-        { x: 800, y: 80, w: 128, h: 16 },
-        { x: 1200, y: 120, w: 64, h: 16 },
-        { x: 1500, y: 90, w: 96, h: 16 },
-        { x: 2000, y: 100, w: 128, h: 16 },
-        { x: 2300, y: 80, w: 64, h: 16 },
-        { x: 2700, y: 120, w: 96, h: 16 },
+        { x: 500, y: 100, w: 96, type: 'dirt' },
+        { x: 800, y: 80, w: 128, type: 'dirt' },
+        { x: 1200, y: 120, w: 64, type: 'dirt' },
+        { x: 1500, y: 90, w: 96, type: 'dirt' },
+        { x: 2000, y: 100, w: 128, type: 'dirt' },
+        { x: 2300, y: 80, w: 64, type: 'dirt' },
+        { x: 2700, y: 120, w: 96, type: 'stone' }, // Stone platform near boss
       ];
     
       for (const p of platformData) {
         // Physics body (invisible)
-        const plat = this.add.rectangle(p.x, p.y, p.w, p.h, 0x2a1a10)
+        const plat = this.add.rectangle(p.x, p.y, p.w, 16, 0x2a1a10)
           .setOrigin(0.5, 0.5)
           .setDepth(5)
           .setVisible(false);
         this.platforms.add(plat);
-        plat.body.setSize(p.w, p.h);
-        plat.body.setOffset(-p.w/2, -p.h/2);
+        plat.body.setSize(p.w, 16);
+        plat.body.setOffset(-p.w/2, -8);
       
-        // Visual platform using tileset
-        const tilesAcross = Math.ceil(p.w / 32);
-        const platformVisual = this.add.tileSprite(p.x, p.y, p.w, 16, 'tileset', 'platform_red_mid')
-          .setOrigin(0.5, 0.5)
-          .setDepth(5);
+        // Visual platform using modular terrain pieces
+        const prefix = p.type === 'stone' ? 'stone' : 'dirt';
       
-        // Add left end cap
-        this.add.sprite(p.x - p.w/2 + 16, p.y, 'tileset', 'platform_red_left')
-          .setOrigin(0.5, 0.5)
-          .setDepth(6);
-      
-        // Add right end cap
-        this.add.sprite(p.x + p.w/2 - 16, p.y, 'tileset', 'platform_red_right')
-          .setOrigin(0.5, 0.5)
-          .setDepth(6);
+        // Choose pieces based on width
+        if (p.w <= 64) {
+          // Small platform - use single medium piece
+          this.add.sprite(p.x, p.y, 'terrain', `${prefix}_medium_1`)
+            .setOrigin(0.5, 0.5)
+            .setDepth(5)
+            .setScale(p.w / 111, 16/111);
+        } else if (p.w <= 128) {
+          // Medium platform - left + center + right from large tile
+          const segW = p.w / 3;
+          this.add.sprite(p.x - p.w/2 + segW/2, p.y, 'terrain', `${prefix}_large_left`)
+            .setOrigin(0.5, 0.5)
+            .setDepth(5)
+            .setScale(segW / 111, 16/332);
+          this.add.sprite(p.x, p.y, 'terrain', `${prefix}_large_center`)
+            .setOrigin(0.5, 0.5)
+            .setDepth(5)
+            .setScale(segW / 111, 16/332);
+          this.add.sprite(p.x + p.w/2 - segW/2, p.y, 'terrain', `${prefix}_large_right`)
+            .setOrigin(0.5, 0.5)
+            .setDepth(5)
+            .setScale(segW / 111, 16/332);
+        } else {
+          // Wide platform - tile center piece
+          this.add.tileSprite(p.x, p.y, p.w, 16, 'terrain', `${prefix}_large_center`)
+            .setOrigin(0.5, 0.5)
+            .setDepth(5)
+            .setScale(1, 16/332);
+          // End caps
+          this.add.sprite(p.x - p.w/2 + 55, p.y, 'terrain', `${prefix}_large_left`)
+            .setOrigin(0.5, 0.5)
+            .setDepth(6)
+            .setScale(1, 16/332);
+          this.add.sprite(p.x + p.w/2 - 55, p.y, 'terrain', `${prefix}_large_right`)
+            .setOrigin(0.5, 0.5)
+            .setDepth(6)
+            .setScale(1, 16/332);
+        }
       }
     
       // Boss area platform
@@ -201,17 +228,19 @@ export class GraveyardScene extends Phaser.Scene {
       bossPlat.body.setSize(400, 32);
       bossPlat.body.setOffset(-200, -16);
     
-      // Boss platform visual
-      const bossVisual = this.add.tileSprite(this.bossAreaStart + 100, 160, 400, 32, 'tileset', 'platform_stone_mid')
+      // Boss platform visual - stone modular pieces
+      this.add.tileSprite(this.bossAreaStart + 100, 160, 400, 32, 'terrain', 'stone_large_center')
         .setOrigin(0.5, 0.5)
-        .setDepth(5);
-    
-      this.add.sprite(this.bossAreaStart + 100 - 200 + 16, 160, 'tileset', 'platform_stone_left')
+        .setDepth(5)
+        .setScale(1, 32/332);
+      this.add.sprite(this.bossAreaStart + 100 - 200 + 55, 160, 'terrain', 'stone_large_left')
         .setOrigin(0.5, 0.5)
-        .setDepth(6);
-      this.add.sprite(this.bossAreaStart + 100 + 200 - 16, 160, 'tileset', 'platform_stone_right')
+        .setDepth(6)
+        .setScale(1, 32/332);
+      this.add.sprite(this.bossAreaStart + 100 + 200 - 55, 160, 'terrain', 'stone_large_right')
         .setOrigin(0.5, 0.5)
-        .setDepth(6);
+        .setDepth(6)
+        .setScale(1, 32/332);
     }
 
   setupKeyboard() {
