@@ -20,10 +20,14 @@ export class Zombie extends Phaser.Physics.Arcade.Sprite {
     this.setDepth(8);
     this.setScale(1);
     
-    this.setSize(24, 40);
-    this.setOffset(4, 8);
-    this.setCollideWorldBounds(true);
-    this.setGravityY(500);
+    // Add to scene and physics world (creates body)
+    scene.add.existing(this);
+    scene.physics.add.existing(this);
+    
+    this.body.setSize(24, 40);
+    this.body.setOffset(4, 8);
+    this.body.setCollideWorldBounds(true);
+    this.body.setGravityY(500);
     
     this.play('zombie-walk', true);
   }

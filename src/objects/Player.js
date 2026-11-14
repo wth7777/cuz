@@ -30,11 +30,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.setDepth(10);
     this.setScale(1);
     
-    // Physics body setup
-    this.setSize(20, 40);
-    this.setOffset(6, 8);
-    this.setCollideWorldBounds(true);
-    this.setGravityY(500);
+    // Add to scene and physics world (creates body)
+    scene.add.existing(this);
+    scene.physics.add.existing(this);
+    
+    // Physics body setup (now body exists)
+    this.body.setSize(20, 40);
+    this.body.setOffset(6, 8);
+    this.body.setCollideWorldBounds(true);
+    this.body.setGravityY(500);
     
     // Attack hitbox (separate object for collision detection)
     this.attackHitbox = scene.add.rectangle(0, 0, 32, 24, 0xff0000, 0)

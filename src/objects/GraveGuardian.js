@@ -30,11 +30,15 @@ export class GraveGuardian extends Phaser.Physics.Arcade.Sprite {
     this.setDepth(12);
     this.setScale(1);
     
-    this.setSize(48, 70);
-    this.setOffset(8, 10);
-    this.setCollideWorldBounds(true);
-    this.setGravityY(500);
-    this.setMaxVelocity(200, 500);
+    // Add to scene and physics world (creates body)
+    scene.add.existing(this);
+    scene.physics.add.existing(this);
+    
+    this.body.setSize(48, 70);
+    this.body.setOffset(8, 10);
+    this.body.setCollideWorldBounds(true);
+    this.body.setGravityY(500);
+    this.body.setMaxVelocity(200, 500);
     
     this.play('guardian-idle', true);
     
