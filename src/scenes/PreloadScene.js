@@ -631,16 +631,16 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   createAnimations() {
-    // Player animations - use frame names from the loaded atlas
+    // Player animations - 2 frames per animation (matching actual sprite sheet)
     const playerAnims = {
-      idle:          { frames: 7, rate: 8,  repeat: -1 },
-      walk:          { frames: 7, rate: 10, repeat: -1 },
-      jump:          { frames: 2, rate: 6,  repeat: 0  },
-      attack:        { frames: 4, rate: 12, repeat: 0  },
-      crouch:        { frames: 2, rate: 6,  repeat: -1 },
-      crouchAttack:  { frames: 3, rate: 12, repeat: 0  },
-      hurt:          { frames: 2, rate: 8,  repeat: 0  },
-      die:           { frames: 5, rate: 6,  repeat: 0  },
+      idle:         { frames: 2, rate: 4,  repeat: -1 },
+      walk:         { frames: 2, rate: 8,  repeat: -1 },
+      jump:         { frames: 2, rate: 6,  repeat: 0  },
+      attack:       { frames: 2, rate: 12, repeat: 0  },
+      crouch:       { frames: 2, rate: 6,  repeat: -1 },
+      crouchAttack: { frames: 2, rate: 12, repeat: 0  },
+      hurt:         { frames: 2, rate: 8,  repeat: 0  },
+      die:          { frames: 2, rate: 4,  repeat: 0  },
     };
 
     for (const [name, cfg] of Object.entries(playerAnims)) {

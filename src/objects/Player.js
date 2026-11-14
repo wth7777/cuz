@@ -20,11 +20,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.crouching = false;
     this.attacking = false;
     this.attackCooldown = 0;
-    this.attackDuration = 450;
+    this.attackDuration = 300;
     
     // Animation state
     this.currentAnim = 'idle';
     this.animFrame = 0;
+    
+    // Invulnerability flash timer
+    this.flashTimer = 0;
+    this.visibleState = true;
     
     // Visual setup - scale down from atlas size (428x256) to game size (~32x48)
     this.setDepth(10);
@@ -40,16 +44,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.body.setCollideWorldBounds(true);
     this.body.setGravityY(500);
     
-    // Attack hitbox (separate object for collision detection)
-    this.attackHitbox = scene.add.rectangle(0, 0, 32, 24, 0xff0000, 0)
-      .setDepth(9);
-    scene.physics.add.existing(this.attackHitbox);
-    this.attackHitbox.body.enable = false;
-    this.attackHitbox.body.setAllowGravity(false);
-    
-    // Invulnerability flash timer
-    this.flashTimer = 0;
-    this.visibleState = true;
+    // Attack key
+    this.scene.keyAttack = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
   }
 
   update(touchControls, cursors) {
@@ -72,16 +68,24 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.attackCooldown -= 16;
       if (this.attackCooldown <= 0) {
         this.attacking = false;
-        this.attackHitbox.body.enable = false;
       }
     }
     
-    // Read input
-    const left = (cursors.left?.isDown || touchControls?.left) && !this.attacking;
-    const right = (cursors.right?.isDown || touchControls?.right) && !this.attacking;
-    const jumpPressed = Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(cursors.space) || touchControls?.jumpPressed;
-    const crouch = cursors.down?.isDown || touchControls?.crouch;
-    const attackPressed = Phaser.Input.Keyboard.JustDown(this.scene.keyAttack) || touchControls?.attackPressed;
+    // Read input - keyboard
+    const keyLeft = cursors.left?.isDown;
+    const keyRight = cursors.right?.isDown;
+    const keyUp = cursors.up?.isDown;
+    const keyDown = cursors.down?.isDown;
+    const keyJump = Phaser.Input.Keyboard.JustDown(cursors.space);
+    const keyAttack = Phaser.Input.Keyboard.JustDown(this.scene.keyAttack);
+    
+    // Read input - touch controls
+    const touchLeft = touchControls?.left;
+    const touchRight = touchControls?.right;
+    const touchUp = touchControls?.up;
+    const touchDown = touchControls?.down;
+    const touchJump = touchControls?.jumpPressed;
+    const touchAttack = touchControls?.attackPressed;
     
     // Reset touch pressed flags
     if (touchControls) {
@@ -89,8 +93,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       touchControls.attackPressed = false;
     }
     
+    // Combined input
+    const left = (keyLeft || touchLeft) && !this.attacking;
+    const right = (keyRight || touchRight) && !this.attacking;
+    const jumpPressed = keyJump || touchJump;
+    const crouch = (keyDown || touchDown) && this.onGround && !this.attacking;
+    const attackPressed = keyAttack || touchAttack;
+    
     // Crouching
-    this.crouching = crouch && this.onGround && !this.attacking;
+    this.crouching = crouch;
     
     // Movement
     if (!this.attacking && !this.crouching) {
@@ -113,67 +124,86 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.play('player-crouch', true);
     }
     
-    // Jump
-    if (jumpPressed && this.onGround && !this.crouching && !this.attacking) {
+    // Jump (up arrow, space, W, or touch up/jump)
+    const upPressed = keyUp || touchUp || jumpPressed;
+    if (upPressed && this.onGround && !this.crouching && !this.attacking) {
       this.setVelocityY(this.jumpPower);
       this.onGround = false;
       this.play('player-jump', true);
     }
     
-    // Attack
+    // Attack - throws projectile
     if (attackPressed && !this.attacking && this.attackCooldown <= 0 && this.onGround) {
-      this.performAttack(crouch);
+      this.performAttack();
     }
-    
-    // Update attack hitbox position
-    this.updateAttackHitbox();
     
     // Check if on ground
     this.onGround = this.body.blocked.down || this.body.touching.down;
   }
 
-  performAttack(crouch) {
-    this.attacking = true;
-    this.attackCooldown = this.attackDuration;
-    this.attackHitbox.body.enable = true;
+  performAttack() {
+      this.attacking = true;
+      this.attackCooldown = this.attackDuration;
     
-    let animKey;
-    if (crouch) {
-      animKey = 'player-crouchAttack';
-    } else {
-      animKey = 'player-attack';
-    }
+      const animKey = 'player-attack';
+      this.play(animKey, true);
     
-    this.play(animKey, true);
+      // Spawn projectile
+      this.spawnProjectile();
     
-    // Reset attacking state when animation completes
-    this.once('animationcomplete-' + animKey, () => {
-      this.attacking = false;
-      this.attackHitbox.body.enable = false;
-    });
-    
-    // Fallback: ensure attacking resets after cooldown even if animation doesn't complete
-    // Add 50ms buffer to ensure animation has time to complete
-    this.scene.time.delayedCall(this.attackDuration + 50, () => {
-      if (this.attacking) {
+      // Reset attacking state when animation completes
+      this.once('animationcomplete-' + animKey, () => {
         this.attacking = false;
-        this.attackHitbox.body.enable = false;
-      }
-    });
+      });
     
-    // Play attack sound if available
-    if (this.scene.sound.get('spark')) {
-      this.scene.sound.play('spark', { volume: 0.1 });
+      // Fallback: ensure attacking resets after cooldown even if animation doesn't complete
+      this.scene.time.delayedCall(this.attackDuration + 50, () => {
+        if (this.attacking) {
+          this.attacking = false;
+        }
+      });
     }
-  }
-
-  updateAttackHitbox() {
-    const offsetX = this.facingRight ? 20 : -32;
-    const offsetY = this.crouching ? 8 : -4;
+  
+    spawnProjectile() {
+      const scene = this.scene;
+      const x = this.x + (this.facingRight ? 20 : -20);
+      const y = this.y - 8;
+      const velocityX = this.facingRight ? 400 : -400;
     
-    this.attackHitbox.setPosition(this.x + offsetX, this.y + offsetY);
-    this.attackHitbox.setSize(this.facingRight ? 32 : 32, this.crouching ? 16 : 24);
-  }
+      // Create projectile sprite (using slash-effect texture)
+      const projectile = scene.add.sprite(x, y, 'slash-effect')
+        .setDepth(10)
+        .setScale(0.5);
+    
+      scene.physics.add.existing(projectile);
+      projectile.body.setAllowGravity(false);
+      projectile.body.setVelocityX(velocityX);
+      projectile.body.setSize(24, 16);
+    
+      // Damage enemies on contact
+      scene.physics.add.overlap(projectile, scene.enemies, (proj, enemy) => {
+        if (enemy.active && enemy.takeDamage) {
+          enemy.takeDamage(this.attackDamage);
+          proj.destroy();
+        }
+      });
+    
+      // Auto-destroy after distance/time
+      scene.time.delayedCall(800, () => {
+        if (projectile.active) projectile.destroy();
+      });
+    
+      // Visual effect
+      scene.tweens.add({
+        targets: projectile,
+        alpha: 0,
+        duration: 600,
+        ease: 'Power2'
+      });
+    }
+  
+    // Keep for compatibility
+    updateAttackHitbox() {}
 
   takeDamage(amount) {
     if (this.invulnerable || this.health <= 0) return;
@@ -182,6 +212,9 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.invulnerable = true;
     this.flashTimer = 0;
     this.visibleState = true;
+    
+    // Play hurt animation
+    this.play('player-hurt', true);
     
     // Knockback
     const knockbackDir = this.facingRight ? -1 : 1;
@@ -208,6 +241,15 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.health <= 0) {
       this.die();
     } else {
+      // Return to idle/walk after hurt animation
+      this.once('animationcomplete-player-hurt', () => {
+        if (this.active && this.health > 0) {
+          if (this.onGround) {
+            this.play('player-idle', true);
+          }
+        }
+      });
+      
       // Invulnerability timer
       this.scene.time.delayedCall(this.invulnerableTime, () => {
         this.invulnerable = false;
@@ -238,7 +280,6 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.active = false;
     this.setVelocity(0, 0);
     this.body.enable = false;
-    this.attackHitbox.body.enable = false;
     this.play('player-die', true);
     this.setAlpha(1);
     this.invulnerable = false;

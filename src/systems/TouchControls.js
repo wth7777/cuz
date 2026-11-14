@@ -5,9 +5,10 @@ export class TouchControls {
     this.scene = scene;
     this.left = false;
     this.right = false;
+    this.up = false;
+    this.down = false;
     this.jumpPressed = false;
     this.attackPressed = false;
-    this.crouch = false;
     
     this.setupDOMButtons();
   }
@@ -16,18 +17,18 @@ export class TouchControls {
     // Get DOM buttons
     this.btnLeft = document.getElementById('btn-left');
     this.btnRight = document.getElementById('btn-right');
+    this.btnUp = document.getElementById('btn-up');
+    this.btnDown = document.getElementById('btn-down');
     this.btnJump = document.getElementById('btn-jump');
     this.btnAttack = document.getElementById('btn-attack');
-    this.btnCrouch = document.getElementById('btn-crouch');
     
-    if (!this.btnLeft || !this.btnRight || !this.btnJump || !this.btnAttack) {
+    if (!this.btnLeft || !this.btnRight || !this.btnUp || !this.btnDown || !this.btnJump || !this.btnAttack) {
       console.warn('Touch control buttons not found in DOM');
       return;
     }
     
     // Prevent default touch behaviors on buttons
-    const buttons = [this.btnLeft, this.btnRight, this.btnJump, this.btnAttack, 
-                     this.btnCrouch].filter(Boolean);
+    const buttons = [this.btnLeft, this.btnRight, this.btnUp, this.btnDown, this.btnJump, this.btnAttack].filter(Boolean);
     
     buttons.forEach(btn => {
       btn.addEventListener('touchstart', (e) => {
@@ -58,13 +59,25 @@ export class TouchControls {
       () => { this.right = false; }
     );
     
+    // Up button (jump)
+    this.setupButton(this.btnUp,
+      () => { this.up = true; },
+      () => { this.up = false; }
+    );
+    
+    // Down button (crouch)
+    this.setupButton(this.btnDown,
+      () => { this.down = true; },
+      () => { this.down = false; }
+    );
+    
     // Jump button
     this.setupButton(this.btnJump,
       () => { this.jumpPressed = true; },
       () => { this.jumpPressed = false; }
     );
     
-    // Attack (punch) button
+    // Attack button
     this.setupButton(this.btnAttack,
       () => { this.attackPressed = true; },
       () => { this.attackPressed = false; }
@@ -154,8 +167,7 @@ export class TouchControls {
   
   destroy() {
     // Clean up event listeners
-    const buttons = [this.btnLeft, this.btnRight, this.btnJump, this.btnAttack,
-                     this.btnCrouch].filter(Boolean);
+    const buttons = [this.btnLeft, this.btnRight, this.btnUp, this.btnDown, this.btnJump, this.btnAttack].filter(Boolean);
     buttons.forEach(btn => {
       if (btn) {
         btn.removeEventListener('pointerdown', null);
