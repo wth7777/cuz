@@ -137,13 +137,30 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.attackCooldown = this.attackDuration;
     this.attackHitbox.body.enable = true;
     
+    let animKey;
     if (crouch) {
-      this.play('player-crouchAttack', true);
+      animKey = 'player-crouchAttack';
     } else if (this.scene.cursors.up?.isDown) {
-      this.play('player-attackUp', true);
+      animKey = 'player-attackUp';
     } else {
-      this.play('player-attack', true);
+      animKey = 'player-attack';
     }
+    
+    this.play(animKey, true);
+    
+    // Reset attacking state when animation completes
+    this.once('animationcomplete-' + animKey, () => {
+      this.attacking = false;
+      this.attackHitbox.body.enable = false;
+    });
+    
+    // Fallback: ensure attacking resets after cooldown even if animation doesn't complete
+    this.scene.time.delayedCall(this.attackDuration, () => {
+      if (this.attacking) {
+        this.attacking = false;
+        this.attackHitbox.body.enable = false;
+      }
+    });
     
     // Play attack sound (using generated spark as placeholder)
     this.scene.sound.play('spark', { volume: 0.1 });
