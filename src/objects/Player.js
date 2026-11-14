@@ -161,8 +161,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       }
     });
     
-    // Play attack sound (using generated spark as placeholder)
-    this.scene.sound.play('spark', { volume: 0.1 });
+    // Play attack sound if available
+    if (this.scene.sound.get('spark')) {
+      this.scene.sound.play('spark', { volume: 0.1 });
+    }
   }
 
   updateAttackHitbox() {
