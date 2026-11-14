@@ -20,23 +20,137 @@
     html, body {
       width: 100%;
       height: 100%;
+      height: 100dvh;
       overflow: hidden;
       background: #0a0a12;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-    #game-container {
+    
+    /* App container - flex column layout */
+    #app-container {
+      display: flex;
+      flex-direction: column;
       width: 100%;
       height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
+      height: 100dvh;
+      background: #0a0a12;
     }
+    
+    /* Game container - takes remaining space above controls */
+    #game-container {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+      background: #0a0a12;
+    }
+    
+    /* Controls container - fixed at bottom */
+    #controls-container {
+      flex-shrink: 0;
+      width: 100%;
+      padding: env(safe-area-inset-left) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      background: rgba(10, 10, 18, 0.95);
+      border-top: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+    
+    /* Touch control zones */
+    .control-zone {
+      touch-action: none;
+    }
+    
+    /* Left side - movement */
+    .controls-left {
+      display: flex;
+      gap: 8px;
+      padding-left: 8px;
+    }
+    
+    .btn-move {
+      width: 70px;
+      height: 70px;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 28px;
+      font-family: monospace;
+      touch-action: none;
+    }
+    
+    .btn-move:active {
+      background: rgba(50, 50, 50, 0.9);
+    }
+    
+    /* Right side - actions */
+    .controls-right {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 8px;
+    }
+    
+    .action-row {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-action {
+      width: 70px;
+      height: 70px;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      font-family: monospace;
+      font-weight: bold;
+      touch-action: none;
+      text-align: center;
+      line-height: 1.2;
+    }
+    
+    .btn-action.jump {
+      background: rgba(0, 60, 0, 0.8);
+      border-color: #0a0;
+    }
+    
+    .btn-action.attack {
+      background: rgba(60, 0, 0, 0.8);
+      border-color: #a00;
+    }
+    
+    .btn-action:active {
+      background: rgba(50, 50, 50, 0.9);
+    }
+    
+    .btn-action.jump:active {
+      background: rgba(0, 100, 0, 0.9);
+    }
+    
+    .btn-action.attack:active {
+      background: rgba(100, 0, 0, 0.9);
+    }
+    
     canvas {
       display: block;
-      max-width: 100%;
-      max-height: 100%;
+      width: 100%;
+      height: 100%;
     }
+    
     #loading {
       position: absolute;
       top: 50%;
@@ -47,6 +161,7 @@
       text-align: center;
       z-index: 100;
     }
+    
     #loading .spinner {
       width: 40px;
       height: 40px;
@@ -56,19 +171,57 @@
       animation: spin 1s linear infinite;
       margin: 0 auto 16px;
     }
+    
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    
     .hidden { display: none !important; }
+    
+    /* Desktop hints */
+    .desktop-hint {
+      position: fixed;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #888;
+      font-size: 12px;
+      font-family: monospace;
+      white-space: nowrap;
+      z-index: 50;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
-  <div id="game-container">
-    <div id="loading">
-      <div class="spinner"></div>
-      <div>Loading Graveyard Level...</div>
+  <div id="app-container">
+    <div id="game-container">
+      <div id="loading">
+        <div class="spinner"></div>
+        <div>Loading Graveyard Level...</div>
+      </div>
+    </div>
+    
+    <!-- Permanent touch control bar at bottom -->
+    <div id="controls-container">
+      <div class="controls-left">
+        <button class="btn-move control-zone" id="btn-left" aria-label="Move left">◀</button>
+        <button class="btn-move control-zone" id="btn-right" aria-label="Move right">▶</button>
+      </div>
+      
+      <div class="controls-right">
+        <div class="action-row">
+          <button class="btn-action jump control-zone" id="btn-jump" aria-label="Jump">↑<br>JUMP</button>
+          <button class="btn-action attack control-zone" id="btn-attack" aria-label="Attack">⚔<br>ATK</button>
+        </div>
+        <div class="action-row">
+          <button class="btn-action attack control-zone" id="btn-kick" aria-label="Kick">🦵<br>KICK</button>
+          <button class="btn-move control-zone" id="btn-crouch" style="width: 70px; height: 70px; font-size: 24px;" aria-label="Crouch">▼</button>
+        </div>
+      </div>
     </div>
   </div>
+  <div class="desktop-hint hidden">Z Jump · X Attack · C Kick · Arrows Move</div>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

@@ -12,8 +12,8 @@ const SCALE_FACTOR = 3;
 const config = {
   type: Phaser.AUTO,
   parent: 'game-container',
-  width: GAME_WIDTH * SCALE_FACTOR,
-  height: GAME_HEIGHT * SCALE_FACTOR,
+  width: GAME_WIDTH,
+  height: GAME_HEIGHT,
   backgroundColor: '#0a0a12',
   pixelArt: true,
   roundPixels: true,
@@ -28,8 +28,8 @@ const config = {
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: GAME_WIDTH * SCALE_FACTOR,
-    height: GAME_HEIGHT * SCALE_FACTOR,
+    width: GAME_WIDTH,
+    height: GAME_HEIGHT,
     min: {
       width: GAME_WIDTH,
       height: GAME_HEIGHT

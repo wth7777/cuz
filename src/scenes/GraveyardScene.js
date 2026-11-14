@@ -85,7 +85,7 @@ export class GraveyardScene extends Phaser.Scene {
     // Boss vs player
     this.physics.add.overlap(this.player, this.boss, this.onPlayerBossContact, null, this);
     
-    // Set up touch controls
+    // Set up touch controls (uses DOM buttons)
     this.touchControls = new TouchControls(this);
     
     // Set up keyboard input
