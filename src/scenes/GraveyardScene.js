@@ -99,8 +99,8 @@ export class GraveyardScene extends Phaser.Scene {
   }
 
   createBackground() {
-    // Far background (parallax)
-    this.bgFar = this.add.tileSprite(0, 0, this.levelWidth, 224, 'graveyard-bg')
+    // Far background (parallax) - using the parallax background image
+    this.bgFar = this.add.tileSprite(0, 0, this.levelWidth, 224, 'parallax-bg')
       .setOrigin(0, 0)
       .setScrollFactor(0.1)
       .setDepth(0);

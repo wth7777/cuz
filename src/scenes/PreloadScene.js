@@ -48,13 +48,15 @@ export class PreloadScene extends Phaser.Scene {
       assetText.destroy();
     });
 
-    // Generate all procedural assets
+    // Load assets
+    this.load.image('parallax-bg', 'assets/parallax-bg.jpg');
+    
+    // Generate procedural assets (except background)
     this.generateAssets();
   }
 
   generateAssets() {
     // ========== BACKGROUNDS ==========
-    this.generateGraveyardBackground();
     this.generateDirtTileset();
     
     // ========== PLAYER SPRITES ==========
