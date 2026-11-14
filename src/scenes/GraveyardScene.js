@@ -73,14 +73,11 @@ export class GraveyardScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.collider(this.enemies, this.platforms);
     
-    // Player vs enemies
+    // Player vs enemies (contact damage)
     this.physics.add.overlap(this.player, this.enemies, this.onPlayerEnemyContact, null, this);
     
-    // Player attack vs enemies
-    this.physics.add.overlap(this.player.attackHitbox, this.enemies, this.onPlayerAttackHit, null, this);
-    
-    // Player attack vs boss
-    this.physics.add.overlap(this.player.attackHitbox, this.boss, this.onPlayerAttackBoss, null, this);
+    // Player projectile vs enemies (handled in Player.spawnProjectile)
+    // Player projectile vs boss (handled in Player.spawnProjectile)
     
     // Boss vs player
     this.physics.add.overlap(this.player, this.boss, this.onPlayerBossContact, null, this);
@@ -126,7 +123,7 @@ export class GraveyardScene extends Phaser.Scene {
         .setOrigin(0.5, 1)
         .setScrollFactor(0.3)
         .setDepth(1);
-    }
+  }
     
     // Ground decoration
     this.groundDecals = this.add.group();
@@ -136,8 +133,8 @@ export class GraveyardScene extends Phaser.Scene {
           .setOrigin(0.5, 0)
           .setScrollFactor(1)
           .setDepth(4);
-      }
     }
+  }
   }
 
   createPlatforms() {
@@ -170,7 +167,7 @@ export class GraveyardScene extends Phaser.Scene {
       this.platforms.add(plat);
       plat.body.setSize(p.w, p.h);
       plat.body.setOffset(-p.w/2, -p.h/2);
-    }
+  }
     
     // Boss area platform
     const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 160, 400, 32, 0x1a0a10)
@@ -201,8 +198,8 @@ export class GraveyardScene extends Phaser.Scene {
       if (spawn.x >= startX && spawn.x < endX && !this.spawnedEnemies.has(spawn.x)) {
         this.spawnEnemy(spawn.x, spawn.type);
         this.spawnedEnemies.add(spawn.x);
-      }
     }
+  }
   }
 
   spawnEnemy(x, type) {
@@ -213,18 +210,18 @@ export class GraveyardScene extends Phaser.Scene {
       enemy = new Zombie(this, x, y);
     } else if (type === 'ghoul') {
       enemy = new Ghoul(this, x, y);
-    }
+  }
     
     if (enemy) {
       this.physics.add.collider(enemy, this.platforms);
       this.enemies.push(enemy);
-    }
+  }
   }
 
   checkBossSpawn() {
     if (!this.bossSpawned && this.player.x > this.bossAreaStart - 100) {
       this.spawnBoss();
-    }
+  }
   }
 
   spawnBoss() {
@@ -249,28 +246,7 @@ export class GraveyardScene extends Phaser.Scene {
       this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
     }
   }
-
-  onPlayerAttackHit(attackHitbox, enemy) {
-    if (enemy.dying) return;
-    
-    enemy.takeDamage(this.player.attackDamage);
-    this.score += 100;
-    this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
-    
-    // Knockback
-    const dir = enemy.x < attackHitbox.x ? -1 : 1;
-    enemy.setVelocityX(dir * 200);
-    enemy.setVelocityY(-150);
-  }
-
-  onPlayerAttackBoss(attackHitbox, boss) {
-    if (boss.dying || boss.invulnerable) return;
-    
-    boss.takeDamage(this.player.attackDamage);
-    this.score += 50;
-    this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
-  }
-
+  
   onPlayerBossContact(player, boss) {
     if (player.invulnerable || boss.dying) return;
     
@@ -279,14 +255,14 @@ export class GraveyardScene extends Phaser.Scene {
       this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
     }
   }
-
+  
   update(time, delta) {
     if (this.gameOver || this.levelComplete) return;
     
     // Update player
     if (this.player && this.player.active) {
       this.player.update(this.touchControls, this.cursors);
-    }
+  }
     
     // Update enemies
     for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -294,14 +270,14 @@ export class GraveyardScene extends Phaser.Scene {
       if (!enemy.active || enemy.dying) {
         this.enemies.splice(i, 1);
         continue;
-      }
-      enemy.update(this.player);
     }
+      enemy.update(this.player);
+  }
     
     // Update boss
     if (this.boss && this.boss.active) {
       this.boss.update(this.player);
-    }
+  }
     
     // Check boss spawn
     this.checkBossSpawn();
@@ -314,12 +290,12 @@ export class GraveyardScene extends Phaser.Scene {
     if (this.boss && this.boss.dying && !this.levelComplete) {
       this.levelComplete = true;
       this.onLevelComplete();
-    }
+  }
     
     // Parallax background
     if (this.bgFar) {
       this.bgFar.tilePositionX = this.cameras.main.scrollX * 0.1;
-    }
+  }
   }
 
   onLevelComplete() {
