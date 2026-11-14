@@ -113,8 +113,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.play('player-jump', true);
     }
     
-    // Movement (only if not attacking/crouching)
-    if (!this.attacking && !this.crouching) {
+    // Movement (only if not attacking/crouching/hurt)
+    if (!this.attacking && !this.crouching && !this.invulnerable) {
       if (left) {
         this.setVelocityX(-this.moveSpeed);
         this.facingRight = false;
@@ -134,13 +134,12 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.play('player-crouch', true);
     }
     
-    // Jump animation - keep playing while in air
+    // Jump animation - force play while in air
     if (this.isJumping) {
       if (this.onGround) {
         this.isJumping = false;
-        // Landed - will transition to idle/walk in next frame
       } else {
-        this.play('player-jump', true);
+        this.anims.play('player-jump', true);
       }
     }
     
@@ -182,16 +181,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       const y = this.y - 8;
       const velocityX = this.facingRight ? 400 : -400;
       
-      // Create projectile sprite - blue magic projectile
-      const projectile = scene.add.sprite(x, y, 'slash-effect')
+      // Create circular blue magic projectile using graphics
+      const g = scene.make.graphics({ x: 0, y: 0, add: false });
+      g.fillStyle(0x4488ff, 1);
+      g.fillCircle(8, 8, 8);
+      g.fillStyle(0x88bbff, 1);
+      g.fillCircle(8, 8, 5);
+      g.fillStyle(0xffffff, 0.6);
+      g.fillCircle(6, 6, 2);
+      g.generateTexture('magic-projectile', 16, 16);
+      g.destroy();
+      
+      const projectile = scene.add.sprite(x, y, 'magic-projectile')
         .setDepth(10)
-        .setScale(1.2)
-        .setTint(0x4488ff); // Blue tint
+        .setScale(1.0);
       
       scene.physics.add.existing(projectile);
       projectile.body.setAllowGravity(false);
       projectile.body.setVelocityX(velocityX);
-      projectile.body.setSize(32, 24);
+      projectile.body.setCircle(8);
       
       // Damage enemies on contact
       scene.physics.add.overlap(projectile, scene.enemies, (proj, enemy) => {
@@ -206,11 +214,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         if (projectile.active) projectile.destroy();
       });
       
-      // Visual effect - pulse
+      // Visual effect - pulse glow
       scene.tweens.add({
         targets: projectile,
-        scale: 0.8,
-        duration: 200,
+        scale: { from: 1.0, to: 1.3 },
+        duration: 150,
         yoyo: true,
         repeat: -1,
         ease: 'Sine.easeInOut'
