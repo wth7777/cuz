@@ -26,9 +26,7 @@ export class Player extends Phaser.GameObjects.Sprite {
     this.currentAnim = 'idle';
     this.animFrame = 0;
     
-    // Physics body setup
-    this.setSize(20, 40);
-    this.setOffset(6, 8);
+    // Visual setup
     this.setDepth(10);
     this.setScale(1);
     
@@ -42,6 +40,14 @@ export class Player extends Phaser.GameObjects.Sprite {
     // Invulnerability flash timer
     this.flashTimer = 0;
     this.visibleState = true;
+  }
+
+  // Call this AFTER the scene adds physics body to this sprite
+  initBody() {
+    this.body.setSize(20, 40);
+    this.body.setOffset(6, 8);
+    this.body.setCollideWorldBounds(true);
+    this.body.setGravityY(500);
   }
 
   update(touchControls, cursors) {

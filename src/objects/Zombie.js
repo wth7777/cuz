@@ -17,16 +17,20 @@ export class Zombie extends Phaser.GameObjects.Sprite {
     this.facingRight = true;
     this.scoreValue = 200;
     
-    this.setSize(24, 40);
-    this.setOffset(4, 8);
     this.setDepth(8);
     this.setScale(1);
     
     scene.physics.add.existing(this);
-    this.body.setCollideWorldBounds(true);
-    this.body.setGravityY(500);
+    this.initBody();
     
     this.play('zombie-walk', true);
+  }
+
+  initBody() {
+    this.body.setSize(24, 40);
+    this.body.setOffset(4, 8);
+    this.body.setCollideWorldBounds(true);
+    this.body.setGravityY(500);
   }
 
   update(player) {

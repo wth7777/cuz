@@ -27,15 +27,11 @@ export class GraveGuardian extends Phaser.GameObjects.Sprite {
     this.shieldActive = false;
     this.shieldTimer = 0;
     
-    this.setSize(48, 70);
-    this.setOffset(8, 10);
     this.setDepth(12);
     this.setScale(1);
     
     scene.physics.add.existing(this);
-    this.body.setCollideWorldBounds(true);
-    this.body.setGravityY(500);
-    this.body.setMaxVelocity(200, 500);
+    this.initBody();
     
     this.play('guardian-idle', true);
     
@@ -46,6 +42,14 @@ export class GraveGuardian extends Phaser.GameObjects.Sprite {
     this.intro = true;
     this.introTimer = 0;
     this.setFlipX(true); // Face left initially
+  }
+
+  initBody() {
+    this.body.setSize(48, 70);
+    this.body.setOffset(8, 10);
+    this.body.setCollideWorldBounds(true);
+    this.body.setGravityY(500);
+    this.body.setMaxVelocity(200, 500);
   }
 
   createHealthBar() {

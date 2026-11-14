@@ -18,16 +18,20 @@ export class Ghoul extends Phaser.GameObjects.Sprite {
     this.scoreValue = 300;
     this.pounceCooldown = 0;
     
-    this.setSize(24, 36);
-    this.setOffset(4, 8);
     this.setDepth(8);
     this.setScale(1);
     
     scene.physics.add.existing(this);
-    this.body.setCollideWorldBounds(true);
-    this.body.setGravityY(500);
+    this.initBody();
     
     this.play('ghoul-walk', true);
+  }
+
+  initBody() {
+    this.body.setSize(24, 36);
+    this.body.setOffset(4, 8);
+    this.body.setCollideWorldBounds(true);
+    this.body.setGravityY(500);
   }
 
   update(player) {

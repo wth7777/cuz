@@ -65,6 +65,7 @@ export class GraveyardScene extends Phaser.Scene {
     this.player = new Player(this, 100, this.groundY - 50);
     this.add.existing(this.player);
     this.physics.add.existing(this.player);
+    this.player.initBody(); // Initialize physics body after it's created
     
     // Set up camera
     this.cameras.main.setBounds(0, 0, this.levelWidth, 224);

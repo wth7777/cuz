@@ -230,6 +230,15 @@ export class PreloadScene extends Phaser.Scene {
     g.generateTexture('player-atlas', atlasW, atlasH);
     g.destroy();
     
+    // Add frames to the texture for animations
+    const tex = this.textures.get('player-atlas');
+    for (const [anim, frames] of Object.entries(frameData)) {
+      for (let i = 0; i < frames.length; i++) {
+        const f = frames[i];
+        tex.add(`${anim}_${i}`, 0, f.x, f.y, f.w, f.h);
+      }
+    }
+    
     // Store frame data for animation creation
     this.playerFrameData = frameData;
     this.playerFrameSize = { w: frameW, h: frameH };
@@ -468,6 +477,12 @@ export class PreloadScene extends Phaser.Scene {
     g.generateTexture('zombie-atlas', frameW * frames, frameH);
     g.destroy();
     
+    // Add frames to texture
+    const ztex = this.textures.get('zombie-atlas');
+    for (let i = 0; i < frames; i++) {
+      ztex.add(`walk_${i}`, 0, i * frameW, 0, frameW, frameH);
+    }
+    
     this.zombieFrames = frames;
     this.zombieFrameSize = { w: frameW, h: frameH };
   }
@@ -563,6 +578,12 @@ export class PreloadScene extends Phaser.Scene {
     
     g.generateTexture('ghoul-atlas', frameW * frames, frameH);
     g.destroy();
+    
+    // Add frames to texture
+    const gtex = this.textures.get('ghoul-atlas');
+    for (let i = 0; i < frames; i++) {
+      gtex.add(`walk_${i}`, 0, i * frameW, 0, frameW, frameH);
+    }
     
     this.ghoulFrames = frames;
     this.ghoulFrameSize = { w: frameW, h: frameH };
@@ -703,6 +724,12 @@ export class PreloadScene extends Phaser.Scene {
     g.generateTexture('guardian-atlas', frameW * frames, frameH);
     g.destroy();
     
+    // Add frames to texture
+    const guatex = this.textures.get('guardian-atlas');
+    for (let i = 0; i < frames; i++) {
+      guatex.add(`idle_${i}`, 0, i * frameW, 0, frameW, frameH);
+    }
+    
     this.guardianFrames = frames;
     this.guardianFrameSize = { w: frameW, h: frameH };
   }
@@ -808,17 +835,13 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   createAnimations() {
-    // Player animations
-    const { playerFrameData, playerFrameSize } = this;
-    const { w, h } = playerFrameSize;
+    // Player animations - use frame names
+    const { playerFrameData } = this;
     
     for (const [anim, frames] of Object.entries(playerFrameData)) {
       this.anims.create({
         key: `player-${anim}`,
-        frames: frames.map(f => ({
-          key: 'player-atlas',
-          frame: { x: f.x, y: f.y, w, h }
-        })),
+        frames: frames.map((_, i) => ({ key: 'player-atlas', frame: `${anim}_${i}` })),
         frameRate: anim === 'attack' || anim === 'attackUp' || anim === 'attackDown' ? 12 : 8,
         repeat: anim === 'idle' || anim === 'walk' ? -1 : 0
       });
