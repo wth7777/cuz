@@ -25,6 +25,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Animation state
     this.currentAnim = 'idle';
     this.animFrame = 0;
+    this.isJumping = false;
     
     // Invulnerability flash timer
     this.flashTimer = 0;
@@ -96,25 +97,34 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Combined input
     const left = (keyLeft || touchLeft) && !this.attacking;
     const right = (keyRight || touchRight) && !this.attacking;
-    const jumpPressed = keyJump || touchJump;
+    const jumpJustPressed = Phaser.Input.Keyboard.JustDown(cursors.space) || touchJump;
+    const jumpHeld = keyUp || touchUp;
     const crouch = (keyDown || touchDown) && this.onGround && !this.attacking;
     const attackPressed = keyAttack || touchAttack;
     
     // Crouching
     this.crouching = crouch;
     
-    // Movement
+    // Jump initiation
+    if (jumpJustPressed && this.onGround && !this.crouching && !this.attacking) {
+      this.setVelocityY(this.jumpPower);
+      this.onGround = false;
+      this.isJumping = true;
+      this.play('player-jump', true);
+    }
+    
+    // Movement (only if not attacking/crouching)
     if (!this.attacking && !this.crouching) {
       if (left) {
         this.setVelocityX(-this.moveSpeed);
         this.facingRight = false;
         this.setFlipX(true);
-        this.play('player-walk', true);
+        if (this.onGround) this.play('player-walk', true);
       } else if (right) {
         this.setVelocityX(this.moveSpeed);
         this.facingRight = true;
         this.setFlipX(false);
-        this.play('player-walk', true);
+        if (this.onGround) this.play('player-walk', true);
       } else {
         this.setVelocityX(0);
         if (this.onGround) this.play('player-idle', true);
@@ -124,12 +134,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.play('player-crouch', true);
     }
     
-    // Jump (up arrow, space, W, or touch up/jump)
-    const upPressed = keyUp || touchUp || jumpPressed;
-    if (upPressed && this.onGround && !this.crouching && !this.attacking) {
-      this.setVelocityY(this.jumpPower);
-      this.onGround = false;
-      this.play('player-jump', true);
+    // Jump animation - keep playing while in air
+    if (this.isJumping) {
+      if (this.onGround) {
+        this.isJumping = false;
+        // Landed - will transition to idle/walk in next frame
+      } else {
+        this.play('player-jump', true);
+      }
     }
     
     // Attack - throws projectile
@@ -169,17 +181,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       const x = this.x + (this.facingRight ? 20 : -20);
       const y = this.y - 8;
       const velocityX = this.facingRight ? 400 : -400;
-    
-      // Create projectile sprite (using slash-effect texture)
+      
+      // Create projectile sprite - blue magic projectile
       const projectile = scene.add.sprite(x, y, 'slash-effect')
         .setDepth(10)
-        .setScale(0.5);
-    
+        .setScale(1.2)
+        .setTint(0x4488ff); // Blue tint
+      
       scene.physics.add.existing(projectile);
       projectile.body.setAllowGravity(false);
       projectile.body.setVelocityX(velocityX);
-      projectile.body.setSize(24, 16);
-    
+      projectile.body.setSize(32, 24);
+      
       // Damage enemies on contact
       scene.physics.add.overlap(projectile, scene.enemies, (proj, enemy) => {
         if (enemy.active && enemy.takeDamage) {
@@ -187,18 +200,29 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
           proj.destroy();
         }
       });
-    
+      
       // Auto-destroy after distance/time
       scene.time.delayedCall(800, () => {
         if (projectile.active) projectile.destroy();
       });
-    
-      // Visual effect
+      
+      // Visual effect - pulse
+      scene.tweens.add({
+        targets: projectile,
+        scale: 0.8,
+        duration: 200,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+      
       scene.tweens.add({
         targets: projectile,
         alpha: 0,
         duration: 600,
-        ease: 'Power2'
+        delay: 200,
+        ease: 'Power2',
+        onComplete: () => { if (projectile.active) projectile.destroy(); }
       });
     }
   
