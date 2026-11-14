@@ -48,109 +48,110 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Attack key
     this.scene.keyAttack = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
   }
-
-  update(touchControls, cursors) {
-    if (!this.active) return;
-    
-    // Handle invulnerability flash
-    if (this.invulnerable) {
-      this.flashTimer += 16;
-      if (this.flashTimer > 100) {
-        this.visibleState = !this.visibleState;
-        this.setAlpha(this.visibleState ? 1 : 0.3);
-        this.flashTimer = 0;
-      }
-    } else {
-      this.setAlpha(1);
-    }
-    
-    // Handle attack cooldown
-    if (this.attackCooldown > 0) {
-      this.attackCooldown -= 16;
-      if (this.attackCooldown <= 0) {
-        this.attacking = false;
-      }
-    }
-    
-    // Read input - keyboard
-    const keyLeft = cursors.left?.isDown;
-    const keyRight = cursors.right?.isDown;
-    const keyUp = cursors.up?.isDown;
-    const keyDown = cursors.down?.isDown;
-    const keyJump = Phaser.Input.Keyboard.JustDown(cursors.space);
-    const keyAttack = Phaser.Input.Keyboard.JustDown(this.scene.keyAttack);
-    
-    // Read input - touch controls
-    const touchLeft = touchControls?.left;
-    const touchRight = touchControls?.right;
-    const touchUp = touchControls?.up;
-    const touchDown = touchControls?.down;
-    const touchJump = touchControls?.jumpPressed;
-    const touchAttack = touchControls?.attackPressed;
-    
-    // Reset touch pressed flags
-    if (touchControls) {
-      touchControls.jumpPressed = false;
-      touchControls.attackPressed = false;
-    }
-    
-    // Combined input
-    const left = (keyLeft || touchLeft) && !this.attacking;
-    const right = (keyRight || touchRight) && !this.attacking;
-    const jumpJustPressed = Phaser.Input.Keyboard.JustDown(cursors.space) || touchJump;
-    const jumpHeld = keyUp || touchUp;
-    const crouch = (keyDown || touchDown) && this.onGround && !this.attacking;
-    const attackPressed = keyAttack || touchAttack;
-    
-    // Crouching
-    this.crouching = crouch;
-    
-    // Jump initiation
-    if (jumpJustPressed && this.onGround && !this.crouching && !this.attacking) {
-      this.setVelocityY(this.jumpPower);
-      this.onGround = false;
-      this.isJumping = true;
-      this.play('player-jump', true);
-    }
-    
-    // Movement (only if not attacking/crouching/hurt)
-    if (!this.attacking && !this.crouching && !this.invulnerable) {
-      if (left) {
-        this.setVelocityX(-this.moveSpeed);
-        this.facingRight = false;
-        this.setFlipX(true);
-        if (this.onGround) this.play('player-walk', true);
-      } else if (right) {
-        this.setVelocityX(this.moveSpeed);
-        this.facingRight = true;
-        this.setFlipX(false);
-        if (this.onGround) this.play('player-walk', true);
+ 
+    update(touchControls, cursors) {
+      if (!this.active) return;
+ 
+      // Check if on ground (do this FIRST, before jump logic)
+      let wasOnGround = this.onGround;
+      this.onGround = this.body.blocked.down || this.body.touching.down;
+ 
+      // Handle invulnerability flash
+      if (this.invulnerable) {
+        this.flashTimer += 16;
+        if (this.flashTimer > 100) {
+          this.visibleState = !this.visibleState;
+          this.setAlpha(this.visibleState ? 1 : 0.3);
+          this.flashTimer = 0;
+        }
       } else {
+        this.setAlpha(1);
+      }
+ 
+      // Handle attack cooldown
+      if (this.attackCooldown > 0) {
+        this.attackCooldown -= 16;
+        if (this.attackCooldown <= 0) {
+          this.attacking = false;
+        }
+      }
+ 
+      // Read input - keyboard
+      const keyLeft = cursors.left?.isDown;
+      const keyRight = cursors.right?.isDown;
+      const keyUp = cursors.up?.isDown;
+      const keyDown = cursors.down?.isDown;
+      const keyJump = Phaser.Input.Keyboard.JustDown(cursors.space);
+      const keyAttack = Phaser.Input.Keyboard.JustDown(this.scene.keyAttack);
+ 
+      // Read input - touch controls
+      const touchLeft = touchControls?.left;
+      const touchRight = touchControls?.right;
+      const touchUp = touchControls?.up;
+      const touchDown = touchControls?.down;
+      const touchJump = touchControls?.jumpPressed;
+      const touchAttack = touchControls?.attackPressed;
+ 
+      // Reset touch pressed flags
+      if (touchControls) {
+        touchControls.jumpPressed = false;
+        touchControls.attackPressed = false;
+      }
+ 
+      // Combined input
+      const left = (keyLeft || touchLeft) && !this.attacking;
+      const right = (keyRight || touchRight) && !this.attacking;
+      const jumpJustPressed = Phaser.Input.Keyboard.JustDown(cursors.space) || touchJump;
+      const jumpHeld = keyUp || touchUp;
+      const crouch = (keyDown || touchDown) && this.onGround && !this.attacking;
+      const attackPressed = keyAttack || touchAttack;
+ 
+      // Crouching
+      this.crouching = crouch;
+ 
+      // Jump initiation
+      if (jumpJustPressed && this.onGround && !this.crouching && !this.attacking) {
+        this.setVelocityY(this.jumpPower);
+        this.onGround = false;
+        this.isJumping = true;
+        this.play('player-jump', true);
+      }
+ 
+      // Movement (only if not attacking/crouching/hurt)
+      if (!this.attacking && !this.crouching && !this.invulnerable) {
+        if (left) {
+          this.setVelocityX(-this.moveSpeed);
+          this.facingRight = false;
+          this.setFlipX(true);
+          if (this.onGround) this.play('player-walk', true);
+        } else if (right) {
+          this.setVelocityX(this.moveSpeed);
+          this.facingRight = true;
+          this.setFlipX(false);
+          if (this.onGround) this.play('player-walk', true);
+        } else {
+          this.setVelocityX(0);
+          if (this.onGround) this.play('player-idle', true);
+        }
+      } else if (this.crouching) {
         this.setVelocityX(0);
-        if (this.onGround) this.play('player-idle', true);
+        this.play('player-crouch', true);
       }
-    } else if (this.crouching) {
-      this.setVelocityX(0);
-      this.play('player-crouch', true);
-    }
-    
-    // Jump animation - force play while in air
-    if (this.isJumping) {
-      if (this.onGround) {
-        this.isJumping = false;
-      } else if (this.anims.currentAnim?.key !== 'player-jump') {
-        this.anims.play('player-jump', true);
+ 
+      // Jump animation - force play while in air
+      if (this.isJumping) {
+        if (this.onGround) {
+          this.isJumping = false;
+        } else if (this.anims.currentAnim?.key !== 'player-jump') {
+          this.anims.play('player-jump', true);
+        }
+      }
+ 
+      // Attack - throws projectile
+      if (attackPressed && !this.attacking && this.attackCooldown <= 0 && this.onGround) {
+        this.performAttack();
       }
     }
-    
-    // Attack - throws projectile
-    if (attackPressed && !this.attacking && this.attackCooldown <= 0 && this.onGround) {
-      this.performAttack();
-    }
-    
-    // Check if on ground
-    this.onGround = this.body.blocked.down || this.body.touching.down;
-  }
 
   performAttack() {
       this.attacking = true;
@@ -181,25 +182,25 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       const y = this.y - 8;
       const velocityX = this.facingRight ? 400 : -400;
       
-      // Create circular blue magic projectile using graphics
+      // Create circular blue magic projectile with white center using graphics
       const g = scene.make.graphics({ x: 0, y: 0, add: false });
       g.fillStyle(0x4488ff, 1);
-      g.fillCircle(8, 8, 8);
+      g.fillCircle(7, 7, 7);        // outer blue circle
       g.fillStyle(0x88bbff, 1);
-      g.fillCircle(8, 8, 5);
-      g.fillStyle(0xffffff, 0.6);
-      g.fillCircle(6, 6, 2);
-      g.generateTexture('magic-projectile', 16, 16);
+      g.fillCircle(7, 7, 4);        // inner lighter blue
+      g.fillStyle(0xffffff, 0.9);
+      g.fillCircle(7, 7, 2);        // white center
+      g.generateTexture('magic-projectile', 14, 14);
       g.destroy();
       
       const projectile = scene.add.sprite(x, y, 'magic-projectile')
         .setDepth(10)
-        .setScale(0.8);
+        .setScale(1.0);
       
       scene.physics.add.existing(projectile);
       projectile.body.setAllowGravity(false);
       projectile.body.setVelocityX(velocityX);
-      projectile.body.setCircle(8);
+      projectile.body.setCircle(7);
       
       // Damage enemies on contact
       scene.physics.add.overlap(projectile, scene.enemies, (proj, enemy) => {
@@ -217,7 +218,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       // Visual effect - pulse glow
       scene.tweens.add({
         targets: projectile,
-        scale: { from: 1.0, to: 1.3 },
+        scale: { from: 1.0, to: 1.2 },
         duration: 150,
         yoyo: true,
         repeat: -1,
