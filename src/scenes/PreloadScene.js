@@ -76,57 +76,67 @@ export class PreloadScene extends Phaser.Scene {
 
   // ----- BACKGROUNDS -----
   generateGraveyardBackground() {
-    const g = this.make.graphics({ x: 0, y: 0, add: false });
     const w = 320, h = 224;
     
+    // Use canvas texture for gradients
+    const texture = this.textures.createCanvas('graveyard-bg', w, h);
+    const ctx = texture.getContext();
+    
     // Sky gradient (dark purple/blue night)
-    const skyGradient = g.createLinearGradient(0, 0, 0, h * 0.6);
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, h * 0.6);
     skyGradient.addColorStop(0, '#0d0d1a');
     skyGradient.addColorStop(0.5, '#1a1028');
     skyGradient.addColorStop(1, '#2d1838');
-    g.fillStyle(skyGradient);
-    g.fillRect(0, 0, w, h * 0.6);
+    ctx.fillStyle = skyGradient;
+    ctx.fillRect(0, 0, w, h * 0.6);
     
     // Ground - dark brown dirt
-    const groundGradient = g.createLinearGradient(0, h * 0.6, 0, h);
+    const groundGradient = ctx.createLinearGradient(0, h * 0.6, 0, h);
     groundGradient.addColorStop(0, '#3d2818');
     groundGradient.addColorStop(0.5, '#2a1a10');
     groundGradient.addColorStop(1, '#1a1008');
-    g.fillStyle(groundGradient);
-    g.fillRect(0, h * 0.6, w, h * 0.4);
+    ctx.fillStyle = groundGradient;
+    ctx.fillRect(0, h * 0.6, w, h * 0.4);
     
     // Far background elements - distant trees/hills
-    g.fillStyle('#1a1020');
+    ctx.fillStyle = '#1a1020';
     for (let i = 0; i < 8; i++) {
       const x = i * 40 + Phaser.Math.Between(-10, 10);
       const y = h * 0.55 + Phaser.Math.Between(-5, 5);
       const w2 = Phaser.Math.Between(30, 50);
       const h2 = Phaser.Math.Between(40, 70);
-      g.fillRoundedRect(x, y, w2, h2, 5);
+      ctx.beginPath();
+      ctx.roundRect(x, y, w2, h2, 5);
+      ctx.fill();
     }
     
     // Tombstones in far background
-    g.fillStyle('#251828');
+    ctx.fillStyle = '#251828';
     for (let i = 0; i < 12; i++) {
       const x = i * 28 + 10;
       const y = h * 0.58;
       const tw = 12;
       const th = Phaser.Math.Between(20, 35);
-      g.fillRect(x, y - th, tw, th);
+      ctx.fillRect(x, y - th, tw, th);
       // Cross on top
-      g.fillRect(x + 4, y - th - 4, 4, 8);
-      g.fillRect(x + 1, y - th - 1, 10, 4);
+      ctx.fillRect(x + 4, y - th - 4, 4, 8);
+      ctx.fillRect(x + 1, y - th - 1, 10, 4);
     }
     
     // Moon
-    g.fillStyle('#3a3048');
-    g.fillCircle(280, 40, 20);
-    g.fillStyle('#4a4058');
-    g.fillCircle(285, 35, 8);
-    g.fillCircle(275, 45, 5);
+    ctx.fillStyle = '#3a3048';
+    ctx.beginPath();
+    ctx.arc(280, 40, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#4a4058';
+    ctx.beginPath();
+    ctx.arc(285, 35, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(275, 45, 5, 0, Math.PI * 2);
+    ctx.fill();
     
-    g.generateTexture('graveyard-bg', w, h);
-    g.destroy();
+    texture.refresh();
   }
 
   generateDirtTileset() {
@@ -765,15 +775,15 @@ export class PreloadScene extends Phaser.Scene {
     g.generateTexture('health-bar-bg', 100, 12);
     g.destroy();
     
-    // Health bar fill
-    const g2 = this.make.graphics({ x: 0, y: 0, add: false });
-    const grad = g2.createLinearGradient(0, 0, 100, 0);
+    // Health bar fill - use canvas for gradient
+    const texture = this.textures.createCanvas('health-bar-fill', 100, 12);
+    const ctx = texture.getContext();
+    const grad = ctx.createLinearGradient(0, 0, 100, 0);
     grad.addColorStop(0, '#c00000');
     grad.addColorStop(1, '#ff4040');
-    g2.fillStyle(grad);
-    g2.fillRect(0, 0, 100, 12);
-    g2.generateTexture('health-bar-fill', 100, 12);
-    g2.destroy();
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 100, 12);
+    texture.refresh();
     
     // Lives icon
     const g3 = this.make.graphics({ x: 0, y: 0, add: false });
