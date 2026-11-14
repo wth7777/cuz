@@ -168,7 +168,7 @@ export class PreloadScene extends Phaser.Scene {
         }
         
         // Add some darker spots
-        g.fillStyle('#151008');
+        g.fillStyle(0x151008);
         for (let i = 0; i < 3; i++) {
           g.fillRect(
             bx + Phaser.Math.Between(0, tileSize - 2),
@@ -250,16 +250,16 @@ export class PreloadScene extends Phaser.Scene {
     const progress = frame / Math.max(1, total - 1);
     
     // Color palette - Don Ramiro: silver armor, red cape
-    const armor = '#c0c0d0';
-    const armorDark = '#808090';
-    const cape = '#8b0000';
-    const capeDark = '#5a0000';
-    const skin = '#e8c8a8';
-    const gold = '#d4a828';
-    const black = '#101010';
+    const armor = 0xc0c0d0;
+    const armorDark = 0x808090;
+    const cape = 0x8b0000;
+    const capeDark = 0x5a0000;
+    const skin = 0xe8c8a8;
+    const gold = 0xd4a828;
+    const black = 0x101010;
     
     // Clear frame
-    g.fillStyle('#00000000');
+    g.fillStyle(0x00000000);
     g.fillRect(x, y, w, h);
     
     // Bobbing offset for walk
@@ -354,7 +354,7 @@ export class PreloadScene extends Phaser.Scene {
     
     // Sword (in right hand)
     if (anim === 'attack' || anim === 'attackUp' || anim === 'attackDown' || anim === 'crouchAttack' || anim === 'idle') {
-      g.fillStyle('#606070');
+      g.fillStyle(0x606070);
       const swordX = armR_x + 3;
       const swordY = armY + 8;
       if (anim === 'attackUp') {
@@ -407,15 +407,15 @@ export class PreloadScene extends Phaser.Scene {
       const legSwing = Math.sin(progress * Math.PI * 2) * 3;
       
       // Clear
-      g.fillStyle('#00000000');
+      g.fillStyle(0x00000000);
       g.fillRect(x, y, frameW, frameH);
       
       // Colors
-      const flesh = '#688848';
-      const fleshDark = '#486030';
-      const rot = '#384020';
-      const blood = '#601010';
-      const cloth = '#383028';
+      const flesh = 0x688848;
+      const fleshDark = 0x486030;
+      const rot = 0x384020;
+      const blood = 0x601010;
+      const cloth = 0x383028;
       
       const cx = x + frameW / 2;
       const cy = y + frameH * 0.7;
@@ -459,13 +459,13 @@ export class PreloadScene extends Phaser.Scene {
       g.fillRect(cx - 6, cy - 14 + bob, 12, 14);
       
       // Face - sunken eyes, open mouth
-      g.fillStyle('#101010');
+      g.fillStyle(0x101010);
       g.fillRect(cx - 4, cy - 11 + bob, 2, 2);
       g.fillRect(cx + 2, cy - 11 + bob, 2, 2);
       g.fillRect(cx - 2, cy - 5 + bob, 4, 2); // mouth
       
       // Hair patches
-      g.fillStyle('#201810');
+      g.fillStyle(0x201810);
       g.fillRect(cx - 5, cy - 16 + bob, 10, 3);
       
       // Blood splatter
@@ -500,17 +500,17 @@ export class PreloadScene extends Phaser.Scene {
       const bob = Math.sin(progress * Math.PI * 2) * 1;
       const legSwing = Math.sin(progress * Math.PI * 2) * 4;
       
-      g.fillStyle('#00000000');
+      g.fillStyle(0x00000000);
       g.fillRect(x, y, frameW, frameH);
       
       const cx = x + frameW / 2;
       const cy = y + frameH * 0.75;
       
       // Colors - pale, sickly
-      const flesh = '#787858';
-      const fleshDark = '#585838';
-      const claw = '#d0d0c0';
-      const blood = '#800000';
+      const flesh = 0x787858;
+      const fleshDark = 0x585838;
+      const claw = 0xd0d0c0;
+      const blood = 0x800000;
       
       // Legs - hunched, longer
       g.fillStyle(fleshDark);
@@ -522,7 +522,7 @@ export class PreloadScene extends Phaser.Scene {
       g.fillRect(cx - 7, cy + 22 + bob + legSwing, 6, 4);
       g.fillRect(cx + 1, cy + 22 + bob - legSwing, 6, 4);
       // Claw tips
-      g.fillStyle('#ffffee');
+      g.fillStyle(0xffffee);
       for (let c = 0; c < 3; c++) {
         g.fillRect(cx - 6 + c * 2, cy + 22 + bob + legSwing, 1, 3);
         g.fillRect(cx + 2 + c * 2, cy + 22 + bob - legSwing, 1, 3);
@@ -549,7 +549,7 @@ export class PreloadScene extends Phaser.Scene {
       g.fillRect(cx - 14, cy + 16 + legSwing, 8, 6);
       g.fillRect(cx + 6, cy + 16 - legSwing, 8, 6);
       for (let c = 0; c < 4; c++) {
-        g.fillStyle('#ffffee');
+        g.fillStyle(0xffffee);
         g.fillRect(cx - 13 + c * 2, cy + 16 + legSwing, 1, 8);
         g.fillRect(cx + 7 + c * 2, cy + 16 - legSwing, 1, 8);
       }
@@ -559,14 +559,14 @@ export class PreloadScene extends Phaser.Scene {
       g.fillRect(cx - 5, cy - 16 + bob, 10, 16);
       
       // Face
-      g.fillStyle('#000000');
+      g.fillStyle(0x000000);
       g.fillRect(cx - 3, cy - 13 + bob, 2, 2); // sunken eye
       g.fillRect(cx + 1, cy - 13 + bob, 2, 2);
       // Jaw
       g.fillStyle(fleshDark);
       g.fillRect(cx - 4, cy - 4 + bob, 8, 4);
       // Teeth
-      g.fillStyle('#ffffee');
+      g.fillStyle(0xffffee);
       for (let t = 0; t < 4; t++) {
         g.fillRect(cx - 3 + t * 2, cy - 3 + bob, 1, 3);
       }
@@ -601,20 +601,20 @@ export class PreloadScene extends Phaser.Scene {
       const progress = i / (frames - 1);
       const bob = Math.sin(progress * Math.PI * 2) * 2;
       
-      g.fillStyle('#00000000');
+      g.fillStyle(0x00000000);
       g.fillRect(x, y, frameW, frameH);
       
       const cx = x + frameW / 2;
       const cy = y + frameH * 0.65;
       
       // Colors - ancient armor, glowing eyes
-      const bone = '#e8e8d8';
-      const boneDark = '#c8c8b8';
-      const armor = '#505060';
-      const armorDark = '#303040';
-      const gold = '#d4a828';
-      const glow = '#00ffff';
-      const dark = '#101010';
+      const bone = 0xe8e8d8;
+      const boneDark = 0xc8c8b8;
+      const armor = 0x505060;
+      const armorDark = 0x303040;
+      const gold = 0xd4a828;
+      const glow = 0x00ffff;
+      const dark = 0x101010;
       
       // Legs - heavy armored
       g.fillStyle(armor);
@@ -678,7 +678,7 @@ export class PreloadScene extends Phaser.Scene {
       g.fillRect(cx + 26, cy + 10 + bob, 6, 20);
       
       // Sword
-      g.fillStyle('#404050');
+      g.fillStyle(0x404050);
       g.fillRect(cx + 28, cy - 40 + bob, 2, 52);
       g.fillStyle(gold);
       g.fillRect(cx + 26, cy + 10 + bob, 6, 4);
@@ -717,7 +717,7 @@ export class PreloadScene extends Phaser.Scene {
       g.fillRect(cx - 2, cy - 32 + bob, 4, 6);
       
       // Tattered cape
-      g.fillStyle('#400000');
+      g.fillStyle(0x400000);
       g.fillRect(cx - 20, cy - 30 + bob, 40, 30);
     }
     
@@ -737,14 +737,14 @@ export class PreloadScene extends Phaser.Scene {
   // ----- EFFECTS -----
   generateBloodParticles() {
     const g = this.make.graphics({ x: 0, y: 0, add: false });
-    g.fillStyle('#800000');
+    g.fillStyle(0x800000);
     g.fillCircle(4, 4, 4);
     g.generateTexture('blood-particle', 8, 8);
     g.destroy();
     
     // Blood splatter
     const g2 = this.make.graphics({ x: 0, y: 0, add: false });
-    g2.fillStyle('#600000');
+    g2.fillStyle(0x600000);
     for (let i = 0; i < 5; i++) {
       g2.fillRect(
         Phaser.Math.Between(0, 15),
@@ -760,7 +760,7 @@ export class PreloadScene extends Phaser.Scene {
   generateHitFlash() {
     // White flash for hit effect
     const g = this.make.graphics({ x: 0, y: 0, add: false });
-    g.fillStyle('#ffffff');
+    g.fillStyle(0xffffff);
     g.fillRect(0, 0, 32, 48);
     g.generateTexture('hit-flash', 32, 48);
     g.destroy();
@@ -769,16 +769,16 @@ export class PreloadScene extends Phaser.Scene {
   generateAttackEffects() {
     // Sword slash effect
     const g = this.make.graphics({ x: 0, y: 0, add: false });
-    g.fillStyle('#ffffee');
+    g.fillStyle(0xffffee);
     g.fillRect(0, 0, 48, 16);
-    g.fillStyle('#ffdd88');
+    g.fillStyle(0xffdd88);
     g.fillRect(2, 2, 44, 12);
     g.generateTexture('slash-effect', 48, 16);
     g.destroy();
     
     // Spark particles
     const g2 = this.make.graphics({ x: 0, y: 0, add: false });
-    g2.fillStyle('#ffdd00');
+    g2.fillStyle(0xffdd00);
     g2.fillCircle(3, 3, 3);
     g2.generateTexture('spark', 6, 6);
     g2.destroy();
@@ -795,7 +795,7 @@ export class PreloadScene extends Phaser.Scene {
   generateUIElements() {
     // Health bar background
     const g = this.make.graphics({ x: 0, y: 0, add: false });
-    g.fillStyle('#1a0a0a');
+    g.fillStyle(0x1a0a0a);
     g.fillRect(0, 0, 100, 12);
     g.lineStyle(2, '#800000');
     g.strokeRect(0, 0, 100, 12);
@@ -814,16 +814,16 @@ export class PreloadScene extends Phaser.Scene {
     
     // Lives icon
     const g3 = this.make.graphics({ x: 0, y: 0, add: false });
-    g3.fillStyle('#c00000');
+    g3.fillStyle(0xc00000);
     g3.fillCircle(8, 8, 7);
-    g3.fillStyle('#ff4040');
+    g3.fillStyle(0xff4040);
     g3.fillCircle(8, 7, 5);
     g3.generateTexture('life-icon', 16, 16);
     g3.destroy();
     
     // Score font texture
     const g4 = this.make.graphics({ x: 0, y: 0, add: false });
-    g4.fillStyle('#ffdd00');
+    g4.fillStyle(0xffdd00);
     g4.generateTexture('gold-pixel', 1, 1);
     g4.destroy();
   }

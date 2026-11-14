@@ -195,7 +195,6 @@ export class TouchControls {
     this.attackZone.setPosition(width - padding - buttonSize * 1.5, height - padding - buttonSize/2);
     this.crouchZone.setPosition(width / 2, height - padding - buttonSize/2);
     
-    this.buttonGraphics.setDisplaySize(width, height);
     this.updateButtonGraphics();
   }
 

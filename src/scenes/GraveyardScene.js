@@ -145,7 +145,6 @@ export class GraveyardScene extends Phaser.Scene {
         .setOrigin(0.5, 0)
         .setDepth(5);
       this.platforms.add(ground);
-      this.physics.add.existing(ground, true);
       ground.body.setSize(64, 48);
       ground.body.setOffset(-32, -16);
     }
@@ -166,7 +165,6 @@ export class GraveyardScene extends Phaser.Scene {
         .setOrigin(0.5, 0.5)
         .setDepth(5);
       this.platforms.add(plat);
-      this.physics.add.existing(plat, true);
       plat.body.setSize(p.w, p.h);
       plat.body.setOffset(-p.w/2, -p.h/2);
     }
@@ -176,7 +174,6 @@ export class GraveyardScene extends Phaser.Scene {
       .setOrigin(0.5, 0.5)
       .setDepth(5);
     this.platforms.add(bossPlat);
-    this.physics.add.existing(bossPlat, true);
     bossPlat.body.setSize(400, 32);
     bossPlat.body.setOffset(-200, -16);
   }
@@ -216,10 +213,9 @@ export class GraveyardScene extends Phaser.Scene {
     }
     
     if (enemy) {
-        this.add.existing(enemy);
-        this.physics.add.collider(enemy, this.platforms);
-        this.enemies.push(enemy);
-      }
+      this.physics.add.collider(enemy, this.platforms);
+      this.enemies.push(enemy);
+    }
   }
 
   checkBossSpawn() {
