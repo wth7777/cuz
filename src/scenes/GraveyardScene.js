@@ -67,7 +67,8 @@ export class GraveyardScene extends Phaser.Scene {
     // Set up camera
     this.cameras.main.setBounds(0, 0, this.levelWidth, 224);
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
-    this.cameras.main.setDeadzone(80, 40);
+    this.cameras.main.setZoom(2);
+    this.cameras.main.setDeadzone(40, 20);
     
     // Set up collisions
     this.physics.add.collider(this.player, this.platforms);
