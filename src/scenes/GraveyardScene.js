@@ -73,11 +73,14 @@ export class GraveyardScene extends Phaser.Scene {
     this.physics.add.collider(this.player, this.platforms);
     this.physics.add.collider(this.enemies, this.platforms);
     
-    // Player vs enemies (contact damage)
+    // Player vs enemies
     this.physics.add.overlap(this.player, this.enemies, this.onPlayerEnemyContact, null, this);
     
-    // Player projectile vs enemies (handled in Player.spawnProjectile)
-    // Player projectile vs boss (handled in Player.spawnProjectile)
+    // Player attack vs enemies
+    this.physics.add.overlap(this.player.attackHitbox, this.enemies, this.onPlayerAttackHit, null, this);
+    
+    // Player attack vs boss
+    this.physics.add.overlap(this.player.attackHitbox, this.boss, this.onPlayerAttackBoss, null, this);
     
     // Boss vs player
     this.physics.add.overlap(this.player, this.boss, this.onPlayerBossContact, null, this);
@@ -96,136 +99,87 @@ export class GraveyardScene extends Phaser.Scene {
   }
 
   createBackground() {
-      // Far background (parallax) - using the parallax background image
-      this.bgFar = this.add.tileSprite(0, 0, this.levelWidth, 224, 'parallax-bg')
-        .setOrigin(0, 0)
-        .setScrollFactor(0.1)
-        .setDepth(0);
+    // Far background (parallax) - using the parallax background image
+    this.bgFar = this.add.tileSprite(0, 0, this.levelWidth, 224, 'parallax-bg')
+      .setOrigin(0, 0)
+      .setScrollFactor(0.1)
+      .setDepth(0);
 
-      // Shift the view downward to show lower portion of the image (graves, lower trees, ground)
-      // Image is 1168x784, tileSprite shows 224px. Offset to show lower portion.
-      this.bgFar.tilePositionY = 320;
+    // Shift the view downward to show lower portion of the image (graves, lower trees, ground)
+    // Image is 1168x784, tileSprite shows 224px. Offset to show lower portion.
+    this.bgFar.tilePositionY = 320;
+    
+    // Mid background - additional tombstones
+    this.bgMid = this.add.group();
+    for (let x = 200; x < this.levelWidth; x += 200) {
+      const y = 140 + Phaser.Math.Between(-10, 10);
+      const tombstone = this.add.rectangle(x, y, 16, Phaser.Math.Between(30, 50), 0x251828)
+        .setOrigin(0.5, 1)
+        .setScrollFactor(0.3)
+        .setDepth(1);
+      // Cross
+      this.add.rectangle(x, y - 40, 6, 12, 0x352038)
+        .setOrigin(0.5, 1)
+        .setScrollFactor(0.3)
+        .setDepth(1);
+      this.add.rectangle(x - 6, y - 35, 18, 6, 0x352038)
+        .setOrigin(0.5, 1)
+        .setScrollFactor(0.3)
+        .setDepth(1);
     }
+    
+    // Ground decoration
+    this.groundDecals = this.add.group();
+    for (let x = 0; x < this.levelWidth; x += 32) {
+      if (Phaser.Math.Between(0, 3) === 0) {
+        this.add.rectangle(x + 16, 170, Phaser.Math.Between(8, 24), Phaser.Math.Between(2, 6), 0x1a1008)
+          .setOrigin(0.5, 0)
+          .setScrollFactor(1)
+          .setDepth(4);
+      }
+    }
+  }
 
   createPlatforms() {
-      this.platforms = this.physics.add.staticGroup();
+    this.platforms = this.physics.add.staticGroup();
     
-      // Main ground - ONE CONTINUOUS BODY spanning entire level
-      const groundTop = this.groundY + 24; // 184
-      const screenBottom = 224;
-      const extendedHeight = screenBottom - groundTop; // 40px to reach bottom
-      
-      // Single continuous collision body - covers walking surface (y=184 to y=208)
-      const ground = this.add.rectangle(this.levelWidth / 2, groundTop + 12, this.levelWidth, 24, 0x3d2818)
-        .setOrigin(0.5, 0)
-        .setDepth(5)
-        .setVisible(false);
-      this.platforms.add(ground);
-      ground.body.setSize(this.levelWidth, 24);
-      ground.body.setOffset(-this.levelWidth / 2, -12);
-      ground.y = groundTop + 12;
+    // Main ground - ONE CONTINUOUS BODY to prevent player getting stuck on seams
+    const ground = this.add.rectangle(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 48, 0x3d2818)
+      .setOrigin(0.5, 0)
+      .setDepth(5)
+      .setVisible(false); // Invisible physics body, visual ground handled by background
+    this.platforms.add(ground);
+    ground.body.setSize(this.levelWidth, 48);
+    ground.body.setOffset(-this.levelWidth / 2, -24);
     
-      // Visual ground - use square medium tile at uniform scale (no stretch)
-      // dirt_medium_1 is 111x111 square. At scale 0.3 = 33x33 tiles.
-      this.groundVisual = this.add.tileSprite(this.levelWidth / 2, groundTop, this.levelWidth, extendedHeight, 'terrain', 'dirt_medium_1')
-        .setOrigin(0.5, 0)
-        .setDepth(5)
-        .setScale(0.3);
+    // Elevated platforms (some tombstone tops, ruins) - keep as separate bodies
+    const platformData = [
+      { x: 500, y: 100, w: 96, h: 16 },
+      { x: 800, y: 80, w: 128, h: 16 },
+      { x: 1200, y: 120, w: 64, h: 16 },
+      { x: 1500, y: 90, w: 96, h: 16 },
+      { x: 2000, y: 100, w: 128, h: 16 },
+      { x: 2300, y: 80, w: 64, h: 16 },
+      { x: 2700, y: 120, w: 96, h: 16 },
+    ];
     
-      // Elevated platforms with modular terrain pieces
-      const platformData = [
-        { x: 500, y: 100, w: 96, type: 'dirt' },
-        { x: 800, y: 80, w: 128, type: 'dirt' },
-        { x: 1200, y: 120, w: 64, type: 'dirt' },
-        { x: 1500, y: 90, w: 96, type: 'dirt' },
-        { x: 2000, y: 100, w: 128, type: 'dirt' },
-        { x: 2300, y: 80, w: 64, type: 'dirt' },
-        { x: 2700, y: 120, w: 96, type: 'stone' }, // Stone platform near boss
-      ];
-    
-      for (const p of platformData) {
-              // Physics body (invisible) - match visual platform top surface
-              const plat = this.add.rectangle(p.x, p.y, p.w, 16, 0x2a1a10)
-                .setOrigin(0.5, 0)
-                .setDepth(5)
-                .setVisible(false);
-              this.platforms.add(plat);
-              plat.body.setSize(p.w, 16);
-              plat.body.setOffset(-p.w/2, 0);
-              // Position so top of collision is at platform y
-              plat.y = p.y;
-      
-              // Visual platform using modular terrain pieces - uniform scale
-              const prefix = p.type === 'stone' ? 'stone' : 'dirt';
-              const tileScale = 0.3; // 111x111 -> 33x33 tiles
-              const tileHeight = 33; // 111 * 0.3
-              const tileWidth = 33;
-      
-              // Choose pieces based on width
-              if (p.w <= 64) {
-                // Small platform - use single medium piece
-                this.add.sprite(p.x, p.y, 'terrain', `${prefix}_medium_1`)
-                  .setOrigin(0.5, 0)
-                  .setDepth(5)
-                  .setScale(tileScale);
-              } else if (p.w <= 128) {
-                // Medium platform - left + center + right from large tile
-                const segW = p.w / 3;
-                this.add.sprite(p.x - p.w/2 + segW/2, p.y, 'terrain', `${prefix}_large_left`)
-                  .setOrigin(0.5, 0)
-                  .setDepth(5)
-                  .setScale(tileScale);
-                this.add.sprite(p.x, p.y, 'terrain', `${prefix}_large_center`)
-                  .setOrigin(0.5, 0)
-                  .setDepth(5)
-                  .setScale(tileScale);
-                this.add.sprite(p.x + p.w/2 - segW/2, p.y, 'terrain', `${prefix}_large_right`)
-                  .setOrigin(0.5, 0)
-                  .setDepth(5)
-                  .setScale(tileScale);
-              } else {
-                // Wide platform - tile center piece
-                this.add.tileSprite(p.x, p.y, p.w, 16, 'terrain', `${prefix}_large_center`)
-                  .setOrigin(0.5, 0)
-                  .setDepth(5)
-                  .setScale(tileScale);
-                // End caps
-                this.add.sprite(p.x - p.w/2 + 55, p.y, 'terrain', `${prefix}_large_left`)
-                  .setOrigin(0.5, 0)
-                  .setDepth(6)
-                  .setScale(tileScale);
-                this.add.sprite(p.x + p.w/2 - 55, p.y, 'terrain', `${prefix}_large_right`)
-                  .setOrigin(0.5, 0)
-                  .setDepth(6)
-                  .setScale(tileScale);
-              }
-            }
-    
-      // Boss area platform
-      const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 160, 400, 32, 0x1a0a10)
-        .setOrigin(0.5, 0)
-        .setDepth(5)
-        .setVisible(false);
-      this.platforms.add(bossPlat);
-      bossPlat.body.setSize(400, 16);
-      bossPlat.body.setOffset(-200, 0);
-      bossPlat.y = 160;
-    
-      // Boss platform visual - stone modular pieces - uniform scale
-      const tileScale = 0.3;
-      this.add.tileSprite(this.bossAreaStart + 100, 160, 400, 32, 'terrain', 'stone_large_center')
-        .setOrigin(0.5, 0)
-        .setDepth(5)
-        .setScale(tileScale);
-      this.add.sprite(this.bossAreaStart + 100 - 200 + 55, 160, 'terrain', 'stone_large_left')
-        .setOrigin(0.5, 0)
-        .setDepth(6)
-        .setScale(tileScale);
-      this.add.sprite(this.bossAreaStart + 100 + 200 - 55, 160, 'terrain', 'stone_large_right')
-        .setOrigin(0.5, 0)
-        .setDepth(6)
-        .setScale(tileScale);
+    for (const p of platformData) {
+      const plat = this.add.rectangle(p.x, p.y, p.w, p.h, 0x2a1a10)
+        .setOrigin(0.5, 0.5)
+        .setDepth(5);
+      this.platforms.add(plat);
+      plat.body.setSize(p.w, p.h);
+      plat.body.setOffset(-p.w/2, -p.h/2);
     }
+    
+    // Boss area platform
+    const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 160, 400, 32, 0x1a0a10)
+      .setOrigin(0.5, 0.5)
+      .setDepth(5);
+    this.platforms.add(bossPlat);
+    bossPlat.body.setSize(400, 32);
+    bossPlat.body.setOffset(-200, -16);
+  }
 
   setupKeyboard() {
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -247,8 +201,8 @@ export class GraveyardScene extends Phaser.Scene {
       if (spawn.x >= startX && spawn.x < endX && !this.spawnedEnemies.has(spawn.x)) {
         this.spawnEnemy(spawn.x, spawn.type);
         this.spawnedEnemies.add(spawn.x);
+      }
     }
-  }
   }
 
   spawnEnemy(x, type) {
@@ -259,18 +213,18 @@ export class GraveyardScene extends Phaser.Scene {
       enemy = new Zombie(this, x, y);
     } else if (type === 'ghoul') {
       enemy = new Ghoul(this, x, y);
-  }
+    }
     
     if (enemy) {
       this.physics.add.collider(enemy, this.platforms);
       this.enemies.push(enemy);
-  }
+    }
   }
 
   checkBossSpawn() {
     if (!this.bossSpawned && this.player.x > this.bossAreaStart - 100) {
       this.spawnBoss();
-  }
+    }
   }
 
   spawnBoss() {
@@ -295,7 +249,28 @@ export class GraveyardScene extends Phaser.Scene {
       this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
     }
   }
-  
+
+  onPlayerAttackHit(attackHitbox, enemy) {
+    if (enemy.dying) return;
+    
+    enemy.takeDamage(this.player.attackDamage);
+    this.score += 100;
+    this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
+    
+    // Knockback
+    const dir = enemy.x < attackHitbox.x ? -1 : 1;
+    enemy.setVelocityX(dir * 200);
+    enemy.setVelocityY(-150);
+  }
+
+  onPlayerAttackBoss(attackHitbox, boss) {
+    if (boss.dying || boss.invulnerable) return;
+    
+    boss.takeDamage(this.player.attackDamage);
+    this.score += 50;
+    this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
+  }
+
   onPlayerBossContact(player, boss) {
     if (player.invulnerable || boss.dying) return;
     
@@ -304,14 +279,14 @@ export class GraveyardScene extends Phaser.Scene {
       this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
     }
   }
-  
+
   update(time, delta) {
     if (this.gameOver || this.levelComplete) return;
     
     // Update player
     if (this.player && this.player.active) {
       this.player.update(this.touchControls, this.cursors);
-  }
+    }
     
     // Update enemies
     for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -319,14 +294,14 @@ export class GraveyardScene extends Phaser.Scene {
       if (!enemy.active || enemy.dying) {
         this.enemies.splice(i, 1);
         continue;
-    }
+      }
       enemy.update(this.player);
-  }
+    }
     
     // Update boss
     if (this.boss && this.boss.active) {
       this.boss.update(this.player);
-  }
+    }
     
     // Check boss spawn
     this.checkBossSpawn();
@@ -339,12 +314,12 @@ export class GraveyardScene extends Phaser.Scene {
     if (this.boss && this.boss.dying && !this.levelComplete) {
       this.levelComplete = true;
       this.onLevelComplete();
-  }
+    }
     
     // Parallax background
     if (this.bgFar) {
       this.bgFar.tilePositionX = this.cameras.main.scrollX * 0.1;
-  }
+    }
   }
 
   onLevelComplete() {
