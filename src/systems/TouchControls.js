@@ -51,8 +51,11 @@ export class TouchControls {
       .setScrollFactor(0)
       .setInteractive({ useHandCursor: false });
     
-    // Visual feedback for buttons
+    // Visual feedback for buttons - backgrounds only
     this.createButtonGraphics();
+    
+    // Create text labels
+    this.createButtonLabels();
     
     // Set up event listeners
     this.setupTouchEvents();
@@ -66,6 +69,89 @@ export class TouchControls {
     this.showControlHint();
   }
 
+  createButtonLabels() {
+    const cam = this.scene.cameras.main;
+    const width = cam.width;
+    const height = cam.height;
+    const buttonSize = this.buttonSize;
+    const padding = 24;
+    const gap = 12;
+    
+    const labelStyle = {
+      fontFamily: 'monospace',
+      fontSize: '14px',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 3,
+      align: 'center'
+    };
+    
+    const arrowStyle = {
+      fontFamily: 'monospace',
+      fontSize: '28px',
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 3,
+      align: 'center'
+    };
+    
+    // Left arrow
+    this.leftLabel = this.scene.add.text(
+      padding + this.buttonSize/2, 
+      height - padding - this.buttonSize/2, 
+      '◀', arrowStyle
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    
+    // Right arrow
+    this.rightLabel = this.scene.add.text(
+      padding + this.buttonSize * 1.5 + gap, 
+      height - padding - this.buttonSize/2, 
+      '▶', arrowStyle
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    
+    // Jump label
+    this.jumpLabel = this.scene.add.text(
+      width - padding - this.buttonSize/2, 
+      height - padding - this.buttonSize * 1.5 - 12, 
+      '↑ JUMP', { 
+        fontFamily: 'monospace',
+        fontSize: '14px',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 3,
+        align: 'center'
+      }
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    
+    // Attack label
+    this.attackLabel = this.scene.add.text(
+      width - padding - this.buttonSize/2, 
+      height - padding - this.buttonSize/2, 
+      '⚔ ATK', { 
+        fontFamily: 'monospace',
+        fontSize: '14px',
+        color: '#ff4040',
+        stroke: '#000000',
+        strokeThickness: 3,
+        align: 'center'
+      }
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+    
+    // Crouch label
+    this.crouchLabel = this.scene.add.text(
+      width - padding - this.buttonSize * 0.6, 
+      height - padding - this.buttonSize * 2.8, 
+      '▼', { 
+        fontFamily: 'monospace',
+        fontSize: '20px',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 3,
+        align: 'center'
+      }
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(201);
+  }
+
   createButtonGraphics() {
     const cam = this.scene.cameras.main;
     const width = cam.width;
@@ -74,7 +160,7 @@ export class TouchControls {
     const padding = 24;
     const gap = 12;
     
-    // Create graphics for visual feedback
+    // Create graphics for visual feedback - backgrounds only
     this.buttonGraphics = this.scene.add.graphics().setDepth(199).setScrollFactor(0);
     this.updateButtonGraphics();
   }
@@ -94,18 +180,13 @@ export class TouchControls {
     const normalAlpha = 0.5;
     
     // Draw button backgrounds with press feedback
-    const drawButton = (x, y, size, isPressed, iconFn) => {
+    const drawButton = (x, y, size, isPressed) => {
       const alpha = isPressed ? pressedAlpha : normalAlpha;
       // Background
       g.fillStyle(0x000000, alpha * 0.6);
       g.lineStyle(3, 0xffffff, alpha);
       g.fillRoundedRect(x - size/2, y - size/2, size, size, 12);
       g.strokeRoundedRect(x - size/2, y - size/2, size, size, 12);
-      // Icon
-      if (iconFn) {
-        g.fillStyle(0xffffff, alpha);
-        iconFn(x, y, size);
-      }
     };
     
     // Left button
@@ -113,16 +194,7 @@ export class TouchControls {
       padding + buttonSize/2, 
       height - padding - buttonSize/2,
       buttonSize,
-      this.buttonPressed.left,
-      (cx, cy, size) => {
-        const s = size * 0.35;
-        g.beginPath();
-        g.moveTo(cx + s * 0.5, cy);
-        g.lineTo(cx - s, cy - s * 0.6);
-        g.lineTo(cx - s, cy + s * 0.6);
-        g.closePath();
-        g.fillPath();
-      }
+      this.buttonPressed.left
     );
     
     // Right button
@@ -130,81 +202,32 @@ export class TouchControls {
       padding + buttonSize * 1.5 + gap, 
       height - padding - buttonSize/2,
       buttonSize,
-      this.buttonPressed.right,
-      (cx, cy, size) => {
-        const s = size * 0.35;
-        g.beginPath();
-        g.moveTo(cx - s * 0.5, cy);
-        g.lineTo(cx + s, cy - s * 0.6);
-        g.lineTo(cx + s, cy + s * 0.6);
-        g.closePath();
-        g.fillPath();
-      }
+      this.buttonPressed.right
     );
     
-    // Jump button (up arrow)
+    // Jump button
     drawButton(
       width - padding - buttonSize/2, 
       height - padding - buttonSize * 1.5 - gap,
       buttonSize,
-      this.buttonPressed.jump,
-      (cx, cy, size) => {
-        const s = size * 0.35;
-        g.beginPath();
-        g.moveTo(cx, cy - s);
-        g.lineTo(cx - s, cy + s * 0.5);
-        g.lineTo(cx + s, cy + s * 0.5);
-        g.closePath();
-        g.fillPath();
-        // "JUMP" text
-        g.fillStyle(0xffffff, this.buttonPressed.jump ? 0.7 : 0.5);
-        g.font = `bold ${Math.max(10, size * 0.14)}px monospace`;
-        g.fillText('JUMP', cx, cy + size * 0.35);
-      }
+      this.buttonPressed.jump
     );
     
-    // Attack button (sword/fist)
+    // Attack button
     drawButton(
       width - padding - buttonSize/2, 
       height - padding - buttonSize/2,
       buttonSize,
-      this.buttonPressed.attack,
-      (cx, cy, size) => {
-        const s = size * 0.4;
-        // Sword icon
-        g.fillStyle(0xffffee, this.buttonPressed.attack ? 0.9 : 0.7);
-        g.beginPath();
-        g.moveTo(cx, cy - s * 1.2);
-        g.lineTo(cx - s * 0.3, cy + s * 0.8);
-        g.lineTo(cx + s * 0.3, cy + s * 0.8);
-        g.closePath();
-        g.fillPath();
-        // Hilt
-        g.fillStyle(0xd4a828, this.buttonPressed.attack ? 0.9 : 0.7);
-        g.fillRect(cx - s * 0.15, cy + s * 0.8, s * 0.3, s * 0.4);
-        // "ATK" text
-        g.fillStyle(0xff4040, this.buttonPressed.attack ? 0.9 : 0.7);
-        g.font = `bold ${Math.max(10, size * 0.13)}px monospace`;
-        g.fillText('ATK', cx, cy + size * 0.35);
-      }
+      this.buttonPressed.attack
     );
     
-    // Crouch button (smaller, down arrow)
+    // Crouch button (smaller)
     const crouchSize = buttonSize * 0.7;
     drawButton(
       width - padding - buttonSize * 0.6,
       height - padding - buttonSize * 2.8,
       crouchSize,
-      this.buttonPressed.crouch,
-      (cx, cy, size) => {
-        const s = size * 0.4;
-        g.beginPath();
-        g.moveTo(cx, cy + s);
-        g.lineTo(cx - s, cy - s * 0.5);
-        g.lineTo(cx + s, cy - s * 0.5);
-        g.closePath();
-        g.fillPath();
-      }
+      this.buttonPressed.crouch
     );
   }
 
@@ -251,6 +274,13 @@ export class TouchControls {
     this.attackZone.setPosition(width - padding - buttonSize/2, height - padding - buttonSize/2);
     this.crouchZone.setPosition(width - padding - buttonSize * 0.6, height - padding - buttonSize * 2.8);
     
+    // Update label positions
+    this.leftLabel.setPosition(padding + buttonSize/2, height - padding - buttonSize/2);
+    this.rightLabel.setPosition(padding + buttonSize * 1.5 + gap, height - padding - buttonSize/2);
+    this.jumpLabel.setPosition(width - padding - buttonSize/2, height - padding - buttonSize * 1.5 - gap);
+    this.attackLabel.setPosition(width - padding - buttonSize/2, height - padding - buttonSize/2);
+    this.crouchLabel.setPosition(width - padding - buttonSize * 0.6, height - padding - buttonSize * 2.8);
+    
     this.updateButtonGraphics();
   }
 
@@ -288,5 +318,10 @@ export class TouchControls {
     this.attackZone.destroy();
     this.crouchZone.destroy();
     this.buttonGraphics.destroy();
+    this.leftLabel.destroy();
+    this.rightLabel.destroy();
+    this.jumpLabel.destroy();
+    this.attackLabel.destroy();
+    this.crouchLabel.destroy();
   }
 }
