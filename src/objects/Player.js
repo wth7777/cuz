@@ -138,7 +138,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     if (this.isJumping) {
       if (this.onGround) {
         this.isJumping = false;
-      } else {
+      } else if (this.anims.currentAnim?.key !== 'player-jump') {
         this.anims.play('player-jump', true);
       }
     }
@@ -194,7 +194,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       
       const projectile = scene.add.sprite(x, y, 'magic-projectile')
         .setDepth(10)
-        .setScale(1.0);
+        .setScale(0.8);
       
       scene.physics.add.existing(projectile);
       projectile.body.setAllowGravity(false);
