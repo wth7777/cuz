@@ -1,0 +1,401 @@
+import Phaser from 'phaser';
+import { Player } from '../objects/Player.js';
+import { Zombie } from '../objects/Zombie.js';
+import { Ghoul } from '../objects/Ghoul.js';
+import { GraveGuardian } from '../objects/GraveGuardian.js';
+import { TouchControls } from '../systems/TouchControls.js';
+
+export class GraveyardScene extends Phaser.Scene {
+  constructor() {
+    super('GraveyardScene');
+  }
+
+  init() {
+    // Game state
+    this.player = null;
+    this.enemies = [];
+    this.boss = null;
+    this.platforms = null;
+    this.groundY = 160;
+    this.levelWidth = 3200; // 10 screens wide
+    this.cameraFollowPlayer = true;
+    this.gameOver = false;
+    this.levelComplete = false;
+    
+    // Score and lives
+    this.score = 0;
+    this.lives = 3;
+    this.maxLives = 5;
+    
+    // Enemy spawn points
+    this.spawnPoints = [
+      { x: 400, type: 'zombie' },
+      { x: 550, type: 'zombie' },
+      { x: 700, type: 'ghoul' },
+      { x: 900, type: 'zombie' },
+      { x: 1100, type: 'zombie' },
+      { x: 1250, type: 'ghoul' },
+      { x: 1400, type: 'zombie' },
+      { x: 1600, type: 'zombie' },
+      { x: 1800, type: 'ghoul' },
+      { x: 2000, type: 'zombie' },
+      { x: 2200, type: 'zombie' },
+      { x: 2400, type: 'ghoul' },
+      { x: 2600, type: 'zombie' },
+      { x: 2800, type: 'ghoul' },
+    ];
+    this.spawnedEnemies = new Set();
+    
+    // Boss area
+    this.bossAreaStart = 2900;
+    this.bossSpawned = false;
+  }
+
+  create() {
+    // Create world bounds
+    this.physics.world.setBounds(0, 0, this.levelWidth, 224);
+    
+    // Create background
+    this.createBackground();
+    
+    // Create ground/platforms
+    this.createPlatforms();
+    
+    // Create player
+    this.player = new Player(this, 100, this.groundY - 50);
+    this.add.existing(this.player);
+    this.physics.add.existing(this.player);
+    
+    // Set up camera
+    this.cameras.main.setBounds(0, 0, this.levelWidth, 224);
+    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    this.cameras.main.setDeadzone(80, 40);
+    
+    // Set up collisions
+    this.physics.add.collider(this.player, this.platforms);
+    this.physics.add.collider(this.enemies, this.platforms);
+    
+    // Player vs enemies
+    this.physics.add.overlap(this.player, this.enemies, this.onPlayerEnemyContact, null, this);
+    
+    // Player attack vs enemies
+    this.physics.add.overlap(this.player.attackHitbox, this.enemies, this.onPlayerAttackHit, null, this);
+    
+    // Player attack vs boss
+    this.physics.add.overlap(this.player.attackHitbox, this.boss, this.onPlayerAttackBoss, null, this);
+    
+    // Boss vs player
+    this.physics.add.overlap(this.player, this.boss, this.onPlayerBossContact, null, this);
+    
+    // Set up touch controls
+    this.touchControls = new TouchControls(this);
+    
+    // Set up keyboard input
+    this.setupKeyboard();
+    
+    // UI Scene will handle HUD
+    this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
+    
+    // Spawn initial enemies
+    this.spawnEnemiesInRange(0, 800);
+  }
+
+  createBackground() {
+    // Far background (parallax)
+    this.bgFar = this.add.tileSprite(0, 0, this.levelWidth, 224, 'graveyard-bg')
+      .setOrigin(0, 0)
+      .setScrollFactor(0.1)
+      .setDepth(0);
+    
+    // Mid background - additional tombstones
+    this.bgMid = this.add.group();
+    for (let x = 200; x < this.levelWidth; x += 200) {
+      const y = 140 + Phaser.Math.Between(-10, 10);
+      const tombstone = this.add.rectangle(x, y, 16, Phaser.Math.Between(30, 50), 0x251828)
+        .setOrigin(0.5, 1)
+        .setScrollFactor(0.3)
+        .setDepth(1);
+      // Cross
+      this.add.rectangle(x, y - 40, 6, 12, 0x352038)
+        .setOrigin(0.5, 1)
+        .setScrollFactor(0.3)
+        .setDepth(1);
+      this.add.rectangle(x - 6, y - 35, 18, 6, 0x352038)
+        .setOrigin(0.5, 1)
+        .setScrollFactor(0.3)
+        .setDepth(1);
+    }
+    
+    // Ground decoration
+    this.groundDecals = this.add.group();
+    for (let x = 0; x < this.levelWidth; x += 32) {
+      if (Phaser.Math.Between(0, 3) === 0) {
+        this.add.rectangle(x + 16, 170, Phaser.Math.Between(8, 24), Phaser.Math.Between(2, 6), 0x1a1008)
+          .setOrigin(0.5, 0)
+          .setScrollFactor(1)
+          .setDepth(4);
+      }
+    }
+  }
+
+  createPlatforms() {
+    this.platforms = this.physics.add.staticGroup();
+    
+    // Main ground
+    for (let x = 0; x < this.levelWidth; x += 64) {
+      const ground = this.add.rectangle(x + 32, 176, 64, 48, 0x3d2818)
+        .setOrigin(0.5, 0)
+        .setDepth(5);
+      this.platforms.add(ground);
+      this.physics.add.existing(ground, true);
+      ground.body.setSize(64, 48);
+      ground.body.setOffset(-32, -16);
+    }
+    
+    // Elevated platforms (some tombstone tops, ruins)
+    const platformData = [
+      { x: 500, y: 100, w: 96, h: 16 },
+      { x: 800, y: 80, w: 128, h: 16 },
+      { x: 1200, y: 120, w: 64, h: 16 },
+      { x: 1500, y: 90, w: 96, h: 16 },
+      { x: 2000, y: 100, w: 128, h: 16 },
+      { x: 2300, y: 80, w: 64, h: 16 },
+      { x: 2700, y: 120, w: 96, h: 16 },
+    ];
+    
+    for (const p of platformData) {
+      const plat = this.add.rectangle(p.x, p.y, p.w, p.h, 0x2a1a10)
+        .setOrigin(0.5, 0.5)
+        .setDepth(5);
+      this.platforms.add(plat);
+      this.physics.add.existing(plat, true);
+      plat.body.setSize(p.w, p.h);
+      plat.body.setOffset(-p.w/2, -p.h/2);
+    }
+    
+    // Boss area platform
+    const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 160, 400, 32, 0x1a0a10)
+      .setOrigin(0.5, 0.5)
+      .setDepth(5);
+    this.platforms.add(bossPlat);
+    this.physics.add.existing(bossPlat, true);
+    bossPlat.body.setSize(400, 32);
+    bossPlat.body.setOffset(-200, -16);
+  }
+
+  setupKeyboard() {
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.keyAttack = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+    this.keyJump = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+    this.keyCrouch = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+    this.keyPause = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.P);
+    this.keyPause.on('down', () => this.togglePause());
+  }
+
+  togglePause() {
+    if (this.gameOver || this.levelComplete) return;
+    this.scene.pause();
+    this.scene.launch('PauseScene'); // We'll create this if needed
+  }
+
+  spawnEnemiesInRange(startX, endX) {
+    for (const spawn of this.spawnPoints) {
+      if (spawn.x >= startX && spawn.x < endX && !this.spawnedEnemies.has(spawn.x)) {
+        this.spawnEnemy(spawn.x, spawn.type);
+        this.spawnedEnemies.add(spawn.x);
+      }
+    }
+  }
+
+  spawnEnemy(x, type) {
+    const y = this.groundY - (type === 'ghoul' ? 10 : 0);
+    let enemy;
+    
+    if (type === 'zombie') {
+      enemy = new Zombie(this, x, y);
+    } else if (type === 'ghoul') {
+      enemy = new Ghoul(this, x, y);
+    }
+    
+    if (enemy) {
+      this.add.existing(enemy);
+      this.physics.add.existing(enemy);
+      this.physics.add.collider(enemy, this.platforms);
+      this.enemies.push(enemy);
+    }
+  }
+
+  checkBossSpawn() {
+    if (!this.bossSpawned && this.player.x > this.bossAreaStart - 100) {
+      this.spawnBoss();
+    }
+  }
+
+  spawnBoss() {
+    this.boss = new GraveGuardian(this, this.bossAreaStart + 200, this.groundY - 40);
+    this.add.existing(this.boss);
+    this.physics.add.existing(this.boss);
+    this.physics.add.collider(this.boss, this.platforms);
+    this.bossSpawned = true;
+    
+    // Stop camera follow during boss fight
+    this.cameras.main.stopFollow();
+    this.cameras.main.pan(this.bossAreaStart, 0, 1000, 'Sine.easeInOut');
+    
+    // Boss music cue
+    this.events.emit('boss-spawned');
+  }
+
+  onPlayerEnemyContact(player, enemy) {
+    if (player.invulnerable || enemy.dying) return;
+    
+    // Only damage if enemy is attacking or player touches enemy
+    if (enemy.attacking || Phaser.Math.Distance.Between(player.x, player.y, enemy.x, enemy.y) < 30) {
+      player.takeDamage(enemy.damage);
+      this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
+    }
+  }
+
+  onPlayerAttackHit(attackHitbox, enemy) {
+    if (enemy.dying) return;
+    
+    enemy.takeDamage(this.player.attackDamage);
+    this.score += 100;
+    this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
+    
+    // Knockback
+    const dir = enemy.x < attackHitbox.x ? -1 : 1;
+    enemy.setVelocityX(dir * 200);
+    enemy.setVelocityY(-150);
+  }
+
+  onPlayerAttackBoss(attackHitbox, boss) {
+    if (boss.dying || boss.invulnerable) return;
+    
+    boss.takeDamage(this.player.attackDamage);
+    this.score += 50;
+    this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
+  }
+
+  onPlayerBossContact(player, boss) {
+    if (player.invulnerable || boss.dying) return;
+    
+    if (boss.attacking || Phaser.Math.Distance.Between(player.x, player.y, boss.x, boss.y) < 50) {
+      player.takeDamage(boss.damage);
+      this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
+    }
+  }
+
+  update(time, delta) {
+    if (this.gameOver || this.levelComplete) return;
+    
+    // Update player
+    if (this.player && this.player.active) {
+      this.player.update(this.touchControls, this.cursors);
+    }
+    
+    // Update enemies
+    for (let i = this.enemies.length - 1; i >= 0; i--) {
+      const enemy = this.enemies[i];
+      if (!enemy.active || enemy.dying) {
+        this.enemies.splice(i, 1);
+        continue;
+      }
+      enemy.update(this.player);
+    }
+    
+    // Update boss
+    if (this.boss && this.boss.active) {
+      this.boss.update(this.player);
+    }
+    
+    // Check boss spawn
+    this.checkBossSpawn();
+    
+    // Spawn more enemies as player progresses
+    const spawnRange = this.player.x + 600;
+    this.spawnEnemiesInRange(this.player.x - 200, spawnRange);
+    
+    // Check level complete
+    if (this.boss && this.boss.dying && !this.levelComplete) {
+      this.levelComplete = true;
+      this.onLevelComplete();
+    }
+    
+    // Parallax background
+    if (this.bgFar) {
+      this.bgFar.tilePositionX = this.cameras.main.scrollX * 0.1;
+    }
+  }
+
+  onLevelComplete() {
+    this.score += 5000; // Boss bonus
+    this.events.emit('hud-update', { score: this.score, lives: this.lives, maxLives: this.maxLives });
+    
+    // Show victory
+    this.time.delayedCall(2000, () => {
+      this.showVictoryScreen();
+    });
+  }
+
+  showVictoryScreen() {
+    this.add.rectangle(160, 112, 320, 224, 0x000000, 0.8)
+      .setScrollFactor(0)
+      .setDepth(100);
+    
+    this.add.text(160, 80, 'LEVEL COMPLETE', {
+      font: '24px monospace',
+      fill: '#ffdd00',
+      stroke: '#000',
+      strokeThickness: 4
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+    
+    this.add.text(160, 130, `Score: ${this.score}`, {
+      font: '18px monospace',
+      fill: '#ffffff'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+    
+    this.add.text(160, 170, 'Touch or Press X to Continue', {
+      font: '14px monospace',
+      fill: '#888888'
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+    
+    this.input.once('pointerdown', () => this.restartLevel());
+    this.keyAttack.once('down', () => this.restartLevel());
+  }
+
+  restartLevel() {
+    this.scene.restart();
+  }
+
+  gameOverSequence() {
+    this.gameOver = true;
+    this.player.die();
+    
+    this.time.delayedCall(3000, () => {
+      this.add.rectangle(160, 112, 320, 224, 0x000000, 0.9)
+        .setScrollFactor(0)
+        .setDepth(100);
+      
+      this.add.text(160, 80, 'GAME OVER', {
+        font: '28px monospace',
+        fill: '#c00000',
+        stroke: '#000',
+        strokeThickness: 4
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+      
+      this.add.text(160, 130, `Final Score: ${this.score}`, {
+        font: '18px monospace',
+        fill: '#ffffff'
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+      
+      this.add.text(160, 170, 'Touch or Press X to Retry', {
+        font: '14px monospace',
+        fill: '#888888'
+      }).setOrigin(0.5).setScrollFactor(0).setDepth(101);
+      
+      this.input.once('pointerdown', () => this.scene.restart());
+      this.keyAttack.once('down', () => this.scene.restart());
+    });
+  }
+}
