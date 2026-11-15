@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>Cuz - Graveyard Level</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background: #0a0a12;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    /* App container - flex column layout */
+    #app-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      background: #0a0a12;
+    }
+    
+    /* Game container - takes remaining space above controls */
+    #game-container {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+      background: #0a0a12;
+    }
+    
+    /* Controls container - fixed at bottom */
+    #controls-container {
+      flex-shrink: 0;
+      width: 100%;
+      padding: env(safe-area-inset-left) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      background: rgba(10, 10, 18, 0.95);
+      border-top: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+    
+    /* Touch control zones */
+    .control-zone {
+      touch-action: none;
+    }
+    
+    /* Left side - movement D-pad */
+        .controls-left {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          padding-left: 8px;
+        }
+    
+        .d-pad-row {
+          display: flex;
+          gap: 4px;
+        }
+    
+        .d-pad-row.center {
+          justify-content: center;
+        }
+
+        .btn-move {
+          width: 60px;
+          height: 60px;
+          border-radius: 12px;
+          background: rgba(0, 0, 0, 0.7);
+          border: 2px solid #444;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-size: 24px;
+          font-family: monospace;
+          touch-action: none;
+        }
+
+        .btn-move:active {
+          background: rgba(50, 50, 50, 0.9);
+        }
+    
+        /* Empty spacer for D-pad center */
+        .d-pad-spacer {
+          width: 60px;
+          height: 60px;
+        }
+
+        /* Right side - actions */
+    .controls-right {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 8px;
+    }
+    
+    .action-row {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn-action {
+      width: 70px;
+      height: 70px;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      font-family: monospace;
+      font-weight: bold;
+      touch-action: none;
+      text-align: center;
+      line-height: 1.2;
+    }
+    
+    .btn-action.jump {
+      background: rgba(0, 60, 0, 0.8);
+      border-color: #0a0;
+    }
+    
+    .btn-action.attack {
+      background: rgba(60, 0, 0, 0.8);
+      border-color: #a00;
+    }
+    
+    .btn-action:active {
+      background: rgba(50, 50, 50, 0.9);
+    }
+    
+    .btn-action.jump:active {
+      background: rgba(0, 100, 0, 0.9);
+    }
+    
+    .btn-action.attack:active {
+      background: rgba(100, 0, 0, 0.9);
+    }
+    
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #e0e0e0;
+      font-size: 16px;
+      text-align: center;
+      z-index: 100;
+    }
+    
+    #loading .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #333;
+      border-top-color: #c0392b;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .hidden { display: none !important; }
+    
+    /* Desktop hints */
+    .desktop-hint {
+      position: fixed;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #888;
+      font-size: 12px;
+      font-family: monospace;
+      white-space: nowrap;
+      z-index: 50;
+      pointer-events: none;
+    }
+  </style>
+  <script type="module" crossorigin src="/cuz/assets/index-CfsSeWrR.js"></script>
+</head>
+<body>
+  <div id="app-container">
+    <div id="game-container">
+      <div id="loading">
+        <div class="spinner"></div>
+        <div>Loading Graveyard Level...</div>
+      </div>
+    </div>
+    
+    <!-- Permanent touch control bar at bottom -->
+    <div id="controls-container">
+      <div class="controls-left">
+        <div class="d-pad-row center">
+          <button class="btn-move control-zone" id="btn-up" aria-label="Jump">▲</button>
+        </div>
+        <div class="d-pad-row">
+          <button class="btn-move control-zone" id="btn-left" aria-label="Move left">◀</button>
+          <div class="d-pad-spacer"></div>
+          <button class="btn-move control-zone" id="btn-right" aria-label="Move right">▶</button>
+        </div>
+        <div class="d-pad-row center">
+          <button class="btn-move control-zone" id="btn-down" aria-label="Crouch">▼</button>
+        </div>
+      </div>
+      
+      <div class="controls-right">
+        <div class="action-row">
+          <button class="btn-action jump control-zone" id="btn-jump" aria-label="Jump">↑<br>JUMP</button>
+          <button class="btn-action attack control-zone" id="btn-attack" aria-label="Attack">⚔<br>ATK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="desktop-hint hidden">Arrows Move · ▲ Jump · ▼ Crouch · Space/Z Jump · X Attack</div>
+</body>
+</html>
