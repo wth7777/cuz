@@ -51,7 +51,7 @@ export class PreloadScene extends Phaser.Scene {
     // Load assets
     this.load.image('parallax-bg', 'assets/parallax-bg.jpg');
     this.load.atlas('player-atlas', 'assets/player-atlas.png', 'assets/player-atlas.json');
-    this.load.atlas('tiles', 'assets/tiles.png', 'assets/tiles.json');
+    this.load.atlas('tileset', 'assets/tileset.png', 'assets/tileset.json');
     
     // Generate procedural assets (except background)
     this.generateAssets();
@@ -60,7 +60,6 @@ export class PreloadScene extends Phaser.Scene {
   generateAssets() {
     // ========== BACKGROUNDS ==========
     this.generateGraveyardBackground();
-    this.generateDirtTileset();
     
     // ========== PLAYER SPRITES ==========
     // Player atlas loaded via this.load.atlas in preload()

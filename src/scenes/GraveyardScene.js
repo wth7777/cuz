@@ -16,7 +16,7 @@ export class GraveyardScene extends Phaser.Scene {
     this.enemies = [];
     this.boss = null;
     this.platforms = null;
-    this.groundY = 176; // Ground top surface at y=176 (screen bottom 224 - ground height 48)
+    this.groundY = 160;
     this.levelWidth = 3200; // 10 screens wide
     this.cameraFollowPlayer = true;
     this.gameOver = false;
@@ -69,7 +69,8 @@ export class GraveyardScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
     this.cameras.main.setDeadzone(40, 20);
     
-    // Set up collisions (platform collision with one-way callback is set up in createPlatforms)
+    // Set up collisions
+    this.physics.add.collider(this.player, this.platforms);
     this.physics.add.collider(this.enemies, this.platforms);
     
     // Player vs enemies (contact damage)
@@ -138,32 +139,22 @@ export class GraveyardScene extends Phaser.Scene {
 
   createPlatforms() {
       this.platforms = this.physics.add.staticGroup();
-      this.oneWayPlatforms = this.physics.add.staticGroup();
     
-      // Main ground - ONE CONTINUOUS BODY, solid from all directions
-      // Ground visual bottom aligns with screen bottom (224), ground is 48px tall
-      const groundTopY = 176; // 224 - 48
-      const ground = this.add.rectangle(this.levelWidth / 2, groundTopY, this.levelWidth, 48, 0x3d2818)
+      // Main ground - ONE CONTINUOUS BODY to prevent player getting stuck on seams
+      const ground = this.add.rectangle(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 48, 0x3d2818)
         .setOrigin(0.5, 0)
         .setDepth(5)
-        .setVisible(false);
+        .setVisible(false); // Invisible physics body
       this.platforms.add(ground);
       ground.body.setSize(this.levelWidth, 48);
-      ground.body.setOffset(-this.levelWidth / 2, 0);
-      ground.y = groundTopY;
+      ground.body.setOffset(-this.levelWidth / 2, -24);
     
-      // Visual ground - tile the dirt texture seamlessly at correct position
-      // Ground visual bottom at y=224, height 48px (scaled from 128 to 48 = 0.375)
-      const groundScale = 48 / 128; // 0.375
-      this.groundVisual = this.add.tileSprite(this.levelWidth / 2, groundTopY, this.levelWidth, 48, 'tiles', 'ground_dirt')
+      // Visual ground - tile the ground texture
+      this.groundVisual = this.add.tileSprite(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 32, 'tileset', 'ground_red')
         .setOrigin(0.5, 0)
-        .setDepth(5)
-        .setScale(1, groundScale);
+        .setDepth(5);
     
-      // Normal solid ground collision (no one-way)
-      this.physics.add.collider(this.player, ground);
-    
-      // Elevated platforms (one-way: jump through from below, solid from above)
+      // Elevated platforms with tile visuals
       const platformData = [
         { x: 500, y: 100, w: 96, h: 16 },
         { x: 800, y: 80, w: 128, h: 16 },
@@ -174,54 +165,53 @@ export class GraveyardScene extends Phaser.Scene {
         { x: 2700, y: 120, w: 96, h: 16 },
       ];
     
-      // Create a process callback for one-way platforms
-      const oneWayPlatformCallback = (player, platform) => {
-        // Only collide if player is moving downward and feet are above platform top
-        // Use body.bottom and platform.body.top for precise check
-        return player.body.velocity.y >= 0 && player.body.bottom <= platform.body.top + 4;
-      };
-    
-      // Set up collider with process callback for one-way behavior (only for elevated platforms)
-      this.physics.add.collider(this.player, this.oneWayPlatforms, null, oneWayPlatformCallback, this);
-    
       for (const p of platformData) {
-        // Physics body - one-way platform (solid from top only)
+        // Physics body (invisible)
         const plat = this.add.rectangle(p.x, p.y, p.w, p.h, 0x2a1a10)
-          .setOrigin(0.5, 0)
+          .setOrigin(0.5, 0.5)
           .setDepth(5)
           .setVisible(false);
-        this.oneWayPlatforms.add(plat);
+        this.platforms.add(plat);
         plat.body.setSize(p.w, p.h);
-        plat.body.setOffset(-p.w/2, 0);
-        plat.y = p.y;
+        plat.body.setOffset(-p.w/2, -p.h/2);
       
-        // Visual platform using stone tiles
-        const tileScale = 16 / 64; // 0.25
-        const tileKeys = ['platform_stone_0_0', 'platform_stone_1_1', 'platform_stone_2_2', 'platform_stone_3_3', 'platform_stone_4_4'];
-        const tileKey = tileKeys[Math.floor(Math.random() * tileKeys.length)];
+        // Visual platform using tileset
+        const tilesAcross = Math.ceil(p.w / 32);
+        const platformVisual = this.add.tileSprite(p.x, p.y, p.w, 16, 'tileset', 'platform_red_mid')
+          .setOrigin(0.5, 0.5)
+          .setDepth(5);
       
-        this.add.tileSprite(p.x, p.y, p.w, 16, 'tiles', tileKey)
-          .setOrigin(0.5, 0)
-          .setDepth(5)
-          .setScale(1, tileScale);
+        // Add left end cap
+        this.add.sprite(p.x - p.w/2 + 16, p.y, 'tileset', 'platform_red_left')
+          .setOrigin(0.5, 0.5)
+          .setDepth(6);
+      
+        // Add right end cap
+        this.add.sprite(p.x + p.w/2 - 16, p.y, 'tileset', 'platform_red_right')
+          .setOrigin(0.5, 0.5)
+          .setDepth(6);
       }
     
-      // Boss area platform (also one-way)
-      const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 144, 400, 32, 0x1a0a10)
-        .setOrigin(0.5, 0)
+      // Boss area platform
+      const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 160, 400, 32, 0x1a0a10)
+        .setOrigin(0.5, 0.5)
         .setDepth(5)
         .setVisible(false);
-      this.oneWayPlatforms.add(bossPlat);
+      this.platforms.add(bossPlat);
       bossPlat.body.setSize(400, 32);
-      bossPlat.body.setOffset(-200, 0);
-      bossPlat.y = 144;
+      bossPlat.body.setOffset(-200, -16);
     
-      // Boss platform visual - use stone tiles
-      const bossTileScale = 32 / 64; // 0.5
-      this.add.tileSprite(this.bossAreaStart + 100, 144, 400, 32, 'tiles', 'platform_stone_2_2_center')
-        .setOrigin(0.5, 0)
-        .setDepth(5)
-        .setScale(1, bossTileScale);
+      // Boss platform visual
+      const bossVisual = this.add.tileSprite(this.bossAreaStart + 100, 160, 400, 32, 'tileset', 'platform_stone_mid')
+        .setOrigin(0.5, 0.5)
+        .setDepth(5);
+    
+      this.add.sprite(this.bossAreaStart + 100 - 200 + 16, 160, 'tileset', 'platform_stone_left')
+        .setOrigin(0.5, 0.5)
+        .setDepth(6);
+      this.add.sprite(this.bossAreaStart + 100 + 200 - 16, 160, 'tileset', 'platform_stone_right')
+        .setOrigin(0.5, 0.5)
+        .setDepth(6);
     }
 
   setupKeyboard() {

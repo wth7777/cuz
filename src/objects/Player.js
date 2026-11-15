@@ -34,15 +34,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     // Visual setup - scale down from atlas size (428x256) to game size (~32x48)
     this.setDepth(10);
     this.setScale(0.18);
-    this.setOrigin(0.5, 1); // Origin at bottom-center (feet)
     
     // Add to scene and physics world (creates body)
     scene.add.existing(this);
     scene.physics.add.existing(this);
     
-    // Physics body setup - feet at origin, body extends upward
-    this.body.setSize(14, 34);
-    this.body.setOffset(-7, -34);
+    // Physics body setup (now body exists) - adjusted for scale
+    this.body.setSize(16, 36);
+    this.body.setOffset(8, 12);
     this.body.setCollideWorldBounds(true);
     this.body.setGravityY(500);
     
