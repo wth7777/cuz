@@ -17,7 +17,7 @@ export class GraveyardScene extends Phaser.Scene {
     this.boss = null;
     this.platforms = null;
     this.oneWayPlatforms = null;
-    this.groundY = 176; // Ground top surface at y=176 (screen bottom 224 - ground height 48)
+    this.groundY = 160;
     this.levelWidth = 3200; // 10 screens wide
     this.cameraFollowPlayer = true;
     this.gameOver = false;
@@ -144,14 +144,14 @@ export class GraveyardScene extends Phaser.Scene {
     
       // Main ground - ONE CONTINUOUS BODY to prevent player getting stuck on seams
       // Ground visual bottom aligns with screen bottom (224), ground is 48px tall
-      const groundTopY = 176; // 224 - 48
+      const groundTopY = this.groundY + 24; // 160 + 24 = 184
       const ground = this.add.rectangle(this.levelWidth / 2, groundTopY, this.levelWidth, 48, 0x3d2818)
         .setOrigin(0.5, 0)
         .setDepth(5)
         .setVisible(false); // Invisible physics body
       this.platforms.add(ground);
       ground.body.setSize(this.levelWidth, 48);
-      ground.body.setOffset(-this.levelWidth / 2, 0);
+      ground.body.setOffset(-this.levelWidth / 2, -24);
       ground.y = groundTopY;
     
       // Visual ground - tile the dirt texture seamlessly at correct position
@@ -209,26 +209,26 @@ export class GraveyardScene extends Phaser.Scene {
       }
     
       // Boss area platform (also one-way)
-      const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 144, 400, 32, 0x1a0a10)
+      const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 160, 400, 32, 0x1a0a10)
         .setOrigin(0.5, 0)
         .setDepth(5)
         .setVisible(false);
       this.oneWayPlatforms.add(bossPlat);
       bossPlat.body.setSize(400, 32);
       bossPlat.body.setOffset(-200, 0);
-      bossPlat.y = 144;
+      bossPlat.y = 160;
     
       // Boss platform visual - use stone tiles
       const bossTileScale = 32 / 64; // 0.5
-      this.add.tileSprite(this.bossAreaStart + 100, 144, 400, 32, 'tiles', 'platform_stone_2_2_center')
+      this.add.tileSprite(this.bossAreaStart + 100, 160, 400, 32, 'tiles', 'platform_stone_2_2_center')
         .setOrigin(0.5, 0)
         .setDepth(5)
         .setScale(1, bossTileScale);
-      this.add.sprite(this.bossAreaStart + 100 - 200 + 55, 144, 'tiles', 'platform_stone_2_2_left')
+      this.add.sprite(this.bossAreaStart + 100 - 200 + 55, 160, 'tiles', 'platform_stone_2_2_left')
         .setOrigin(0.5, 0)
         .setDepth(6)
         .setScale(1, bossTileScale);
-      this.add.sprite(this.bossAreaStart + 100 + 200 - 55, 144, 'tiles', 'platform_stone_2_2_right')
+      this.add.sprite(this.bossAreaStart + 100 + 200 - 55, 160, 'tiles', 'platform_stone_2_2_right')
         .setOrigin(0.5, 0)
         .setDepth(6)
         .setScale(1, bossTileScale);
