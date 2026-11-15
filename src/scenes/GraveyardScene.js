@@ -138,45 +138,74 @@ export class GraveyardScene extends Phaser.Scene {
   }
 
   createPlatforms() {
-    this.platforms = this.physics.add.staticGroup();
+      this.platforms = this.physics.add.staticGroup();
     
-    // Main ground - ONE CONTINUOUS BODY to prevent player getting stuck on seams
-    const ground = this.add.rectangle(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 48, 0x3d2818)
-      .setOrigin(0.5, 0)
-      .setDepth(5)
-      .setVisible(false); // Invisible physics body, visual ground handled by background
-    this.platforms.add(ground);
-    ground.body.setSize(this.levelWidth, 48);
-    ground.body.setOffset(-this.levelWidth / 2, -24);
+      // Main ground - ONE CONTINUOUS BODY to prevent player getting stuck on seams
+      const ground = this.add.rectangle(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 48, 0x3d2818)
+        .setOrigin(0.5, 0)
+        .setDepth(5)
+        .setVisible(false); // Invisible physics body, visual ground handled by background
+      this.platforms.add(ground);
+      ground.body.setSize(this.levelWidth, 48);
+      ground.body.setOffset(-this.levelWidth / 2, -24);
     
-    // Elevated platforms (some tombstone tops, ruins) - keep as separate bodies
-    const platformData = [
-      { x: 500, y: 100, w: 96, h: 16 },
-      { x: 800, y: 80, w: 128, h: 16 },
-      { x: 1200, y: 120, w: 64, h: 16 },
-      { x: 1500, y: 90, w: 96, h: 16 },
-      { x: 2000, y: 100, w: 128, h: 16 },
-      { x: 2300, y: 80, w: 64, h: 16 },
-      { x: 2700, y: 120, w: 96, h: 16 },
-    ];
+      // Visual ground - tile the dirt texture seamlessly
+      // ground is at y=184 (groundY+24), 48px tall. Use ground_dirt tile (128x128) scaled to 48px tall
+      const groundScale = 48 / 128; // 0.375
+      this.groundVisual = this.add.tileSprite(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 48, 'tiles', 'ground_dirt')
+        .setOrigin(0.5, 0)
+        .setDepth(5)
+        .setScale(1, groundScale);
     
-    for (const p of platformData) {
-      const plat = this.add.rectangle(p.x, p.y, p.w, p.h, 0x2a1a10)
+      // Elevated platforms (some tombstone tops, ruins) - keep as separate bodies
+      const platformData = [
+        { x: 500, y: 100, w: 96, h: 16 },
+        { x: 800, y: 80, w: 128, h: 16 },
+        { x: 1200, y: 120, w: 64, h: 16 },
+        { x: 1500, y: 90, w: 96, h: 16 },
+        { x: 2000, y: 100, w: 128, h: 16 },
+        { x: 2300, y: 80, w: 64, h: 16 },
+        { x: 2700, y: 120, w: 96, h: 16 },
+      ];
+    
+      for (const p of platformData) {
+        const plat = this.add.rectangle(p.x, p.y, p.w, p.h, 0x2a1a10)
+          .setOrigin(0.5, 0.5)
+          .setDepth(5);
+        this.platforms.add(plat);
+        plat.body.setSize(p.w, p.h);
+        plat.body.setOffset(-p.w/2, -p.h/2);
+      
+        // Visual platform using stone tiles
+        const tileSize = 64;
+        const tilesAcross = Math.ceil(p.w / tileSize);
+        const tileScale = 16 / 64; // 0.25 - platform is 16px tall, tile is 64px
+      
+        // Use a few different stone tiles for variety
+        const tileKeys = ['platform_stone_0_0', 'platform_stone_1_1', 'platform_stone_2_2', 'platform_stone_3_3', 'platform_stone_4_4'];
+        const tileKey = tileKeys[Math.floor(Math.random() * tileKeys.length)];
+      
+        this.add.tileSprite(p.x, p.y, p.w, 16, 'tiles', tileKey)
+          .setOrigin(0.5, 0)
+          .setDepth(5)
+          .setScale(1, tileScale);
+      }
+    
+      // Boss area platform
+      const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 160, 400, 32, 0x1a0a10)
         .setOrigin(0.5, 0.5)
         .setDepth(5);
-      this.platforms.add(plat);
-      plat.body.setSize(p.w, p.h);
-      plat.body.setOffset(-p.w/2, -p.h/2);
-  }
+      this.platforms.add(bossPlat);
+      bossPlat.body.setSize(400, 32);
+      bossPlat.body.setOffset(-200, -16);
     
-    // Boss area platform
-    const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 160, 400, 32, 0x1a0a10)
-      .setOrigin(0.5, 0.5)
-      .setDepth(5);
-    this.platforms.add(bossPlat);
-    bossPlat.body.setSize(400, 32);
-    bossPlat.body.setOffset(-200, -16);
-  }
+      // Boss platform visual - use stone tiles
+      const bossTileScale = 32 / 64; // 0.5
+      this.add.tileSprite(this.bossAreaStart + 100, 160, 400, 32, 'tiles', 'platform_stone_2_2_center')
+        .setOrigin(0.5, 0)
+        .setDepth(5)
+        .setScale(1, bossTileScale);
+    }
 
   setupKeyboard() {
     this.cursors = this.input.keyboard.createCursorKeys();

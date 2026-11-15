@@ -51,6 +51,7 @@ export class PreloadScene extends Phaser.Scene {
     // Load assets
     this.load.image('parallax-bg', 'assets/parallax-bg.jpg');
     this.load.atlas('player-atlas', 'assets/player-atlas.png', 'assets/player-atlas.json');
+    this.load.atlas('tiles', 'assets/tiles.png', 'assets/tiles.json');
     
     // Generate procedural assets (except background)
     this.generateAssets();
