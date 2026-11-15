@@ -138,10 +138,11 @@ export class GraveyardScene extends Phaser.Scene {
 
   createPlatforms() {
       this.platforms = this.physics.add.staticGroup();
+      this.oneWayPlatforms = this.physics.add.staticGroup();
     
-      // Main ground - ONE CONTINUOUS BODY to prevent player getting stuck on seams
+      // Main ground - ONE CONTINUOUS BODY, solid from all directions
       // Ground visual bottom aligns with screen bottom (224), ground is 48px tall
-      const groundTopY = this.groundY; // 176 = 224 - 48
+      const groundTopY = 176; // 224 - 48
       const ground = this.add.rectangle(this.levelWidth / 2, groundTopY, this.levelWidth, 48, 0x3d2818)
         .setOrigin(0.5, 0)
         .setDepth(5)
@@ -159,6 +160,9 @@ export class GraveyardScene extends Phaser.Scene {
         .setDepth(5)
         .setScale(1, groundScale);
     
+      // Normal solid ground collision (no one-way)
+      this.physics.add.collider(this.player, ground);
+    
       // Elevated platforms (one-way: jump through from below, solid from above)
       const platformData = [
         { x: 500, y: 100, w: 96, h: 16 },
@@ -173,11 +177,12 @@ export class GraveyardScene extends Phaser.Scene {
       // Create a process callback for one-way platforms
       const oneWayPlatformCallback = (player, platform) => {
         // Only collide if player is moving downward and feet are above platform top
-        return player.body.velocity.y >= 0 && player.y < platform.y;
+        // Use body.bottom and platform.body.top for precise check
+        return player.body.velocity.y >= 0 && player.body.bottom <= platform.body.top + 4;
       };
     
-      // Set up collider with process callback for one-way behavior
-      this.physics.add.collider(this.player, this.platforms, null, oneWayPlatformCallback, this);
+      // Set up collider with process callback for one-way behavior (only for elevated platforms)
+      this.physics.add.collider(this.player, this.oneWayPlatforms, null, oneWayPlatformCallback, this);
     
       for (const p of platformData) {
         // Physics body - one-way platform (solid from top only)
@@ -185,7 +190,7 @@ export class GraveyardScene extends Phaser.Scene {
           .setOrigin(0.5, 0)
           .setDepth(5)
           .setVisible(false);
-        this.platforms.add(plat);
+        this.oneWayPlatforms.add(plat);
         plat.body.setSize(p.w, p.h);
         plat.body.setOffset(-p.w/2, 0);
         plat.y = p.y;
@@ -206,7 +211,7 @@ export class GraveyardScene extends Phaser.Scene {
         .setOrigin(0.5, 0)
         .setDepth(5)
         .setVisible(false);
-      this.platforms.add(bossPlat);
+      this.oneWayPlatforms.add(bossPlat);
       bossPlat.body.setSize(400, 32);
       bossPlat.body.setOffset(-200, 0);
       bossPlat.y = 144;
