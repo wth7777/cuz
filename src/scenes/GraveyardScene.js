@@ -141,23 +141,26 @@ export class GraveyardScene extends Phaser.Scene {
       this.platforms = this.physics.add.staticGroup();
     
       // Main ground - ONE CONTINUOUS BODY to prevent player getting stuck on seams
-      const ground = this.add.rectangle(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 48, 0x3d2818)
+      // Ground visual bottom aligns with screen bottom (224), ground is 48px tall
+      const groundTopY = 176; // 224 - 48
+      const ground = this.add.rectangle(this.levelWidth / 2, groundTopY, this.levelWidth, 48, 0x3d2818)
         .setOrigin(0.5, 0)
         .setDepth(5)
-        .setVisible(false); // Invisible physics body, visual ground handled by background
+        .setVisible(false);
       this.platforms.add(ground);
       ground.body.setSize(this.levelWidth, 48);
-      ground.body.setOffset(-this.levelWidth / 2, -24);
+      ground.body.setOffset(-this.levelWidth / 2, 0);
+      ground.y = groundTopY;
     
-      // Visual ground - tile the dirt texture seamlessly
-      // ground is at y=184 (groundY+24), 48px tall. Use ground_dirt tile (128x128) scaled to 48px tall
+      // Visual ground - tile the dirt texture seamlessly at correct position
+      // Ground visual bottom at y=224, height 48px (scaled from 128 to 48 = 0.375)
       const groundScale = 48 / 128; // 0.375
-      this.groundVisual = this.add.tileSprite(this.levelWidth / 2, this.groundY + 24, this.levelWidth, 48, 'tiles', 'ground_dirt')
+      this.groundVisual = this.add.tileSprite(this.levelWidth / 2, groundTopY, this.levelWidth, 48, 'tiles', 'ground_dirt')
         .setOrigin(0.5, 0)
         .setDepth(5)
         .setScale(1, groundScale);
     
-      // Elevated platforms (some tombstone tops, ruins) - keep as separate bodies
+      // Elevated platforms (one-way: jump through from below, solid from above)
       const platformData = [
         { x: 500, y: 100, w: 96, h: 16 },
         { x: 800, y: 80, w: 128, h: 16 },
@@ -169,19 +172,19 @@ export class GraveyardScene extends Phaser.Scene {
       ];
     
       for (const p of platformData) {
+        // Physics body - one-way platform (solid from top only)
         const plat = this.add.rectangle(p.x, p.y, p.w, p.h, 0x2a1a10)
-          .setOrigin(0.5, 0.5)
-          .setDepth(5);
+          .setOrigin(0.5, 0)
+          .setDepth(5)
+          .setVisible(false);
         this.platforms.add(plat);
         plat.body.setSize(p.w, p.h);
-        plat.body.setOffset(-p.w/2, -p.h/2);
+        plat.body.setOffset(-p.w/2, 0);
+        plat.body.checkCollision.down = false; // One-way: can jump up through
+        plat.y = p.y;
       
         // Visual platform using stone tiles
-        const tileSize = 64;
-        const tilesAcross = Math.ceil(p.w / tileSize);
-        const tileScale = 16 / 64; // 0.25 - platform is 16px tall, tile is 64px
-      
-        // Use a few different stone tiles for variety
+        const tileScale = 16 / 64; // 0.25
         const tileKeys = ['platform_stone_0_0', 'platform_stone_1_1', 'platform_stone_2_2', 'platform_stone_3_3', 'platform_stone_4_4'];
         const tileKey = tileKeys[Math.floor(Math.random() * tileKeys.length)];
       
@@ -191,13 +194,16 @@ export class GraveyardScene extends Phaser.Scene {
           .setScale(1, tileScale);
       }
     
-      // Boss area platform
+      // Boss area platform (also one-way)
       const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 160, 400, 32, 0x1a0a10)
-        .setOrigin(0.5, 0.5)
-        .setDepth(5);
+        .setOrigin(0.5, 0)
+        .setDepth(5)
+        .setVisible(false);
       this.platforms.add(bossPlat);
       bossPlat.body.setSize(400, 32);
-      bossPlat.body.setOffset(-200, -16);
+      bossPlat.body.setOffset(-200, 0);
+      bossPlat.body.checkCollision.down = false; // One-way
+      bossPlat.y = 160;
     
       // Boss platform visual - use stone tiles
       const bossTileScale = 32 / 64; // 0.5
