@@ -1,0 +1,33 @@
+{
+  "game_structure": "Maldita Castilla uses GameMaker GEN8 with data.win (47.1 MB)",
+  "objects": 435,
+  "sprites": 448,
+  "script_pattern": "gml_Object_<object>_<event>_<num> + scr_<name>",
+  "boss_mechanics": "Alarm-driven phase systems (Luzfarel 7-phase, Heart 4-phase, Demon Court 3-phase)",
+  "projectiles": "Collision_48 based system",
+  "convergence": [
+    "Use GameMaker VM bytecode as native target",
+    "Parallax background with y=320 offset for proper ground alignment",
+    "Player physics with origin at bottom, body offset (-7, -34) for feet alignment",
+    "Single continuous ground collision body spanning entire level (prevent player stuck on seams)",
+    "Touch controls with large buttons (100px), visual feedback",
+    "Modular platform tile system (wide/center/right, medium)",
+    "Enemy path system with GML-style movement patterns",
+    "Alarm-driven boss phase transitions (similar to Luzfarel, Heart, Demon Court phases)",
+    "Collisions based on bullet groups (Collision_48 for regular, Collision_0 for knives, etc.)",
+    "Animation system (idle=0, walk=1-4, jump=5-7, attack=8-10, crouch=11, hurt=12-14, die=15)"
+  ],
+  "differences": [
+    "Platform: PC/GameMaker vs ARM64/Phaser 3+Vite",
+    "GameMaker GML vs JavaScript/TypeScript",
+    "VEGA 3D engine vs custom Phaser 2D renderer",
+    "48MB GameMaker assets vs compressed web assets",
+    "GameMaker VM bytecode vs hand-written GML bytecode",
+    "Touch arcade machine vs mobile touch controls",
+    "Collision-based object system vs Phaser physics engine",
+    "3D stereoscopic vs 2D pixel art graphics",
+    "GameMaker data.win vs file-based asset system",
+    "VEGA GameMaker API vs custom backend API"
+  ],
+  "conclusion": "Both projects share identical gameplay mechanics with different technical implementations"
+}
