@@ -16,7 +16,7 @@ export class GraveyardScene extends Phaser.Scene {
     this.enemies = [];
     this.boss = null;
     this.platforms = null;
-    this.groundY = 160;
+    this.groundY = 176; // Ground top surface at y=176 (screen bottom 224 - ground height 48)
     this.levelWidth = 3200; // 10 screens wide
     this.cameraFollowPlayer = true;
     this.gameOver = false;
@@ -69,8 +69,7 @@ export class GraveyardScene extends Phaser.Scene {
     this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
     this.cameras.main.setDeadzone(40, 20);
     
-    // Set up collisions
-    this.physics.add.collider(this.player, this.platforms);
+    // Set up collisions (platform collision with one-way callback is set up in createPlatforms)
     this.physics.add.collider(this.enemies, this.platforms);
     
     // Player vs enemies (contact damage)
@@ -142,7 +141,7 @@ export class GraveyardScene extends Phaser.Scene {
     
       // Main ground - ONE CONTINUOUS BODY to prevent player getting stuck on seams
       // Ground visual bottom aligns with screen bottom (224), ground is 48px tall
-      const groundTopY = 176; // 224 - 48
+      const groundTopY = this.groundY; // 176 = 224 - 48
       const ground = this.add.rectangle(this.levelWidth / 2, groundTopY, this.levelWidth, 48, 0x3d2818)
         .setOrigin(0.5, 0)
         .setDepth(5)
@@ -171,6 +170,15 @@ export class GraveyardScene extends Phaser.Scene {
         { x: 2700, y: 120, w: 96, h: 16 },
       ];
     
+      // Create a process callback for one-way platforms
+      const oneWayPlatformCallback = (player, platform) => {
+        // Only collide if player is moving downward and feet are above platform top
+        return player.body.velocity.y >= 0 && player.y < platform.y;
+      };
+    
+      // Set up collider with process callback for one-way behavior
+      this.physics.add.collider(this.player, this.platforms, null, oneWayPlatformCallback, this);
+    
       for (const p of platformData) {
         // Physics body - one-way platform (solid from top only)
         const plat = this.add.rectangle(p.x, p.y, p.w, p.h, 0x2a1a10)
@@ -180,7 +188,6 @@ export class GraveyardScene extends Phaser.Scene {
         this.platforms.add(plat);
         plat.body.setSize(p.w, p.h);
         plat.body.setOffset(-p.w/2, 0);
-        plat.body.checkCollision.down = false; // One-way: can jump up through
         plat.y = p.y;
       
         // Visual platform using stone tiles
@@ -195,19 +202,18 @@ export class GraveyardScene extends Phaser.Scene {
       }
     
       // Boss area platform (also one-way)
-      const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 160, 400, 32, 0x1a0a10)
+      const bossPlat = this.add.rectangle(this.bossAreaStart + 100, 144, 400, 32, 0x1a0a10)
         .setOrigin(0.5, 0)
         .setDepth(5)
         .setVisible(false);
       this.platforms.add(bossPlat);
       bossPlat.body.setSize(400, 32);
       bossPlat.body.setOffset(-200, 0);
-      bossPlat.body.checkCollision.down = false; // One-way
-      bossPlat.y = 160;
+      bossPlat.y = 144;
     
       // Boss platform visual - use stone tiles
       const bossTileScale = 32 / 64; // 0.5
-      this.add.tileSprite(this.bossAreaStart + 100, 160, 400, 32, 'tiles', 'platform_stone_2_2_center')
+      this.add.tileSprite(this.bossAreaStart + 100, 144, 400, 32, 'tiles', 'platform_stone_2_2_center')
         .setOrigin(0.5, 0)
         .setDepth(5)
         .setScale(1, bossTileScale);
